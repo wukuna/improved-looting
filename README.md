@@ -1,10 +1,14 @@
 # Improved Looting
 
-This plugin is currently in Beta mode. Hover over panel controls for brief explanations; the Display page keeps the Cards / Labels and Native / OSRS selectors together.
+**This plugin is currently in Beta mode.**
 
-Customizable ground loot cards, nearby loot browsing, visual filters, price tiers and alerts for RuneLite.
+Make ground loot easier to scan with compact cards or classic labels, Native / OSRS themes, custom backgrounds and seven configurable price tiers. Add loot beams, text timers or fading item pictures, hide unwanted drops, and browse nearby loot from the side panel.
 
-Open the chest side panel. The controls remain in the same `improvedlooting` settings group, preserving older filters, assignments, assets and price tiers.
+Open the chest side panel for Display, Style, Rules and imports, and Alerts. Hover controls for brief explanations. Existing filters, assignments, assets and price tiers retain their saved settings.
+
+**Availability:** Install **Improved Looting** from RuneLite's Plugin Hub. The [initial submission #19762](https://github.com/runelite/plugin-hub/pull/19762), including Native / OSRS cards and custom background colors, has merged. As of 30 October 2026, [panel cleanup #19769](https://github.com/runelite/plugin-hub/pull/19769) is awaiting review. This README describes that newer layout, with the theme selector on Display beneath Cards / Labels; the earlier build keeps it under Style.
+
+**More plugins:** [Banking, Looting, Right-Clicks, Interface Layout and Chat](https://github.com/wukuna#runelite-plugins).
 
 ## What is included
 
