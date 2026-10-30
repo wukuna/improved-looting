@@ -16,7 +16,7 @@ final class LootProfiles
     static final class Library { int version=1;Map<String,Setup> presets=new LinkedHashMap<>(); }
     @Inject ItemIcons icons;
     @Inject LootPreferences preferences;
-    static Set<String> keys(){Set<String> keys=new LinkedHashSet<>(Arrays.asList(BOOLEAN_KEYS));keys.addAll(NUMBERS.keySet());Collections.addAll(keys,"priceDisplay","timerDisplay","groundStyle","labelOrder","labelAlignment",FilterIcons.KEY,ItemIcons.KEY,PriceTiers.KEY,LootPreferences.KEY);return keys;}
+    static Set<String> keys(){Set<String> keys=new LinkedHashSet<>(Arrays.asList(BOOLEAN_KEYS));keys.addAll(NUMBERS.keySet());Collections.addAll(keys,"cardTheme","cardBackgroundColor","priceDisplay","timerDisplay","groundStyle","labelOrder","labelAlignment",FilterIcons.KEY,ItemIcons.KEY,PriceTiers.KEY,LootPreferences.KEY);return keys;}
     Setup capture(){Setup s=new Setup();for(String key:keys())s.settings.put(key,icons.configs.getConfiguration(ImprovedLootingConfig.GROUP,key));return s;}
     String export(){return icons.gson.toJson(capture());}
     Setup parse(String raw)
@@ -35,6 +35,10 @@ final class LootProfiles
             if(NUMBERS.containsKey(key)){try{int n=Integer.parseInt(value);int[] bounds=NUMBERS.get(key);if(n<bounds[0]||n>bounds[1]||key.equals("labelFontSize")&&n>0&&n<8)throw new NumberFormatException();}catch(NumberFormatException ex){throw new IllegalArgumentException("Out of range: "+key);}}
             if(key.equals("labelOrder"))ImprovedLootingConfig.LabelOrder.valueOf(value);
             if(key.equals("priceDisplay") || key.equals("timerDisplay"))ImprovedLootingConfig.DetailMode.valueOf(value);
+            if(key.equals("cardTheme"))ImprovedLootingConfig.CardTheme.valueOf(value);
+            if(key.equals("cardBackgroundColor")){
+                try{Integer.parseInt(value);}catch(NumberFormatException ex){throw new IllegalArgumentException("Invalid card background color",ex);}
+            }
             if(key.equals("groundStyle"))ImprovedLootingConfig.GroundStyle.valueOf(value);
             if(key.equals("labelAlignment"))ImprovedLootingConfig.LabelAlignment.valueOf(value);
             if(key.equals(FilterIcons.KEY)&&!value.isBlank())icons.filters.parse(value);

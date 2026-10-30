@@ -80,7 +80,7 @@ public class GroundLootCardsTest
         when(f.loot.config.priceDisplay()).thenReturn(ImprovedLootingConfig.DetailMode.ALWAYS);
         BufferedImage automatic=render(cards);java.awt.Rectangle bounds=bounds(automatic);
         Graphics2D g=automatic.createGraphics();g.setFont(new java.awt.Font(java.awt.Font.SANS_SERIF,java.awt.Font.BOLD,12));
-        int height=LootCardPainter.height(g.getFontMetrics(),0),size=LootCardPainter.iconSize(height);
+        int height=LootCardPainter.height(ImprovedLootingConfig.CardTheme.NATIVE,g.getFontMetrics(),0),size=LootCardPainter.iconSize(height);
         int required=LootCardPainter.width(g.getFontMetrics(),size,entry.facts.getName(),2,20000,false,60);g.dispose();
         assertEquals(required,bounds.width);assertTrue(bounds.width>260);assertEquals(height,bounds.height);assertTrue(height<26);
         setup.tiers[2].bold=false;assertTrue(bounds(render(cards)).width<bounds.width);setup.tiers[2].bold=true;

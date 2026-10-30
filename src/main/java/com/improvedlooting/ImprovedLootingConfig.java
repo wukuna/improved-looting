@@ -1,5 +1,6 @@
 package com.improvedlooting;
 
+import java.awt.Color;
 import net.runelite.client.config.*;
 
 /** The side panel is the single home for these controls. */
@@ -27,6 +28,16 @@ public interface ImprovedLootingConfig extends Config
     enum LabelOrder { VALUE, DISTANCE, NAME, TIME }
     enum LabelAlignment { CENTER, LEFT, RIGHT }
     enum GroundStyle { CARDS, LABELS }
+    enum CardTheme {
+        NATIVE("Native"), OSRS("OSRS");
+        private final String label;
+        CardTheme(String label){this.label=label;}
+        @Override public String toString(){return label;}
+    }
+    @ConfigItem(keyName="cardTheme",name="Card theme",description="Configured in the side panel",hidden=true)
+    default CardTheme cardTheme(){return CardTheme.NATIVE;}
+    @ConfigItem(keyName="cardBackgroundColor",name="Card background color",description="Configured in the side panel",hidden=true)
+    default Color cardBackgroundColor(){return null;} // Unset follows the selected theme's color.
     enum DetailMode {
         HIDDEN("Hidden"), RULES("Follow rules"), ALWAYS("Always");
         private final String label;

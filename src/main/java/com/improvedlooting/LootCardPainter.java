@@ -4,12 +4,20 @@ import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Locale;
+import net.runelite.client.ui.FontManager;
+import static com.improvedlooting.ImprovedLootingConfig.CardTheme;
 
 /** The production single-row card renderer, also used for off-screen visual checks. */
 final class LootCardPainter
 {
     static final Color BACKGROUND=new Color(23,27,32,235),TEXT=new Color(236,239,243),VALUE=new Color(177,187,199);
-    static int height(FontMetrics metrics,int requestedHeight){return Math.max(metrics.getHeight()+2,Math.max(0,Math.min(96,requestedHeight)));}
+    static Color background(CardTheme theme,Color chosen){return chosen!=null?chosen:theme==CardTheme.OSRS?new Color(55,44,28):BACKGROUND;}
+    static Font font(CardTheme theme,int size,boolean bold)
+    {
+        if(theme==CardTheme.OSRS){Font base=bold?FontManager.getRunescapeBoldFont():FontManager.getRunescapeFont();return size==0?base:base.deriveFont((float)Math.max(8,Math.min(32,size)));}
+        return new Font(Font.SANS_SERIF,bold?Font.BOLD:Font.PLAIN,size==0?12:Math.max(8,Math.min(32,size)));
+    }
+    static int height(CardTheme theme,FontMetrics metrics,int requestedHeight){return Math.max(metrics.getHeight()+(theme==CardTheme.OSRS?6:2),Math.max(0,Math.min(96,requestedHeight)));}
     static int iconSize(int height){return Math.max(1,height-2);}
     static int width(FontMetrics metrics,int iconSize,String name,long quantity,long price,boolean shortPrices,int seconds)
     {
@@ -54,19 +62,29 @@ final class LootCardPainter
         return (price<=0?"":"("+(shortPrices?shortNumber(price):String.format(Locale.ROOT,"%,d",price))+" gp)")
             +(seconds<0?"":(price>0?" ":"")+"["+seconds+"s]");
     }
-    static void surface(Graphics2D g,Rectangle bounds,boolean background,boolean border,int opacity)
+    static void surface(Graphics2D g,Rectangle bounds,boolean background,boolean border,int opacity,CardTheme theme,Color backgroundColor)
     {
-        if(background){g.setColor(new Color(23,27,32,Math.round(Math.max(0,Math.min(100,opacity))*2.55f)));g.fillRoundRect(bounds.x,bounds.y,bounds.width,bounds.height,7,7);}
-        if(border){g.setColor(new Color(88,99,112,180));g.setStroke(new BasicStroke(1));g.drawRoundRect(bounds.x,bounds.y,bounds.width-1,bounds.height-1,7,7);}
+        boolean osrs=theme==CardTheme.OSRS;
+        if(background){Color color=background(theme,backgroundColor);g.setColor(new Color(color.getRed(),color.getGreen(),color.getBlue(),Math.round(Math.max(0,Math.min(100,opacity))*2.55f)));
+            if(osrs)g.fillRect(bounds.x,bounds.y,bounds.width,bounds.height);else g.fillRoundRect(bounds.x,bounds.y,bounds.width,bounds.height,7,7);}
+        if(border){g.setStroke(new BasicStroke(1));
+            if(osrs){
+                g.setColor(new Color(20,16,10,230));g.drawRect(bounds.x,bounds.y,bounds.width-1,bounds.height-1);
+                g.setColor(new Color(155,130,81,230));g.drawLine(bounds.x+1,bounds.y+1,bounds.x+bounds.width-2,bounds.y+1);g.drawLine(bounds.x+1,bounds.y+1,bounds.x+1,bounds.y+bounds.height-2);
+                g.setColor(new Color(90,69,41,230));g.drawLine(bounds.x+1,bounds.y+bounds.height-2,bounds.x+bounds.width-2,bounds.y+bounds.height-2);g.drawLine(bounds.x+bounds.width-2,bounds.y+1,bounds.x+bounds.width-2,bounds.y+bounds.height-2);
+            }else{g.setColor(new Color(88,99,112,180));g.drawRoundRect(bounds.x,bounds.y,bounds.width-1,bounds.height-1,7,7);}
+        }
     }
-    static void row(Graphics2D original,Rectangle bounds,Paint rail,BufferedImage icon,String name,long quantity,long price,boolean hidden,boolean background,boolean border,int opacity,boolean shortPrices,int seconds)
+    static void row(Graphics2D original,Rectangle bounds,Paint rail,BufferedImage icon,String name,long quantity,long price,boolean hidden,boolean background,boolean border,int opacity,boolean shortPrices,int seconds,CardTheme theme,Color backgroundColor)
     {
         Graphics2D g=(Graphics2D)original.create();
         try{
             g.clip(bounds);
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            surface(g,bounds,background,border,opacity);
-            Shape clip=g.getClip();g.clip(new RoundRectangle2D.Double(bounds.x,bounds.y,bounds.width,bounds.height,7,7));g.setPaint(hidden?Color.GRAY:rail);g.fillRect(bounds.x,bounds.y,4,bounds.height);g.setClip(clip);
+            boolean osrs=theme==CardTheme.OSRS;
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,osrs?RenderingHints.VALUE_ANTIALIAS_OFF:RenderingHints.VALUE_ANTIALIAS_ON);g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,osrs?RenderingHints.VALUE_TEXT_ANTIALIAS_OFF:RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            surface(g,bounds,background,border,opacity,theme,backgroundColor);
+            Shape clip=g.getClip();if(!osrs)g.clip(new RoundRectangle2D.Double(bounds.x,bounds.y,bounds.width,bounds.height,7,7));g.setPaint(hidden?Color.GRAY:rail);
+            int inset=osrs&&border?2:0;g.fillRect(bounds.x+inset,bounds.y+inset,osrs?3:4,bounds.height-inset*2);g.setClip(clip);
             int size=icon==null?18:icon.getWidth(),left=bounds.x+10;
             if(icon!=null)g.drawImage(icon,left,bounds.y+(bounds.height-size)/2,null);
             FontMetrics metrics=g.getFontMetrics();String amount=details(price,shortPrices,seconds);int amountX=bounds.x+bounds.width-9-metrics.stringWidth(amount);
@@ -74,7 +92,10 @@ final class LootCardPainter
             String label=fit(name,metrics,Math.max(0,amountX-nameX-12-metrics.stringWidth(suffix)))+suffix;
             int baseline=bounds.y+(bounds.height-metrics.getHeight())/2+metrics.getAscent();
             Shape textClip=g.getClip();g.clipRect(nameX,bounds.y,Math.max(0,amountX-nameX-8),bounds.height);
-            g.setPaint(hidden?Color.GRAY:rail);g.drawString(label,nameX,baseline);g.setClip(textClip);g.setPaint(hidden?Color.GRAY:rail);g.drawString(amount,amountX,baseline);
+            if(osrs){g.setColor(Color.BLACK);g.drawString(label,nameX+1,baseline+1);}
+            g.setPaint(hidden?Color.GRAY:rail);g.drawString(label,nameX,baseline);g.setClip(textClip);
+            if(osrs){g.setColor(Color.BLACK);g.drawString(amount,amountX+1,baseline+1);}
+            g.setPaint(hidden?Color.GRAY:rail);g.drawString(amount,amountX,baseline);
         }finally{g.dispose();}
     }
     static Rectangle place(int anchorX,int anchorY,int width,int height,Rectangle viewport,java.util.List<Rectangle> occupied)

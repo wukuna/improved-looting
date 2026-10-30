@@ -45,8 +45,9 @@ final class GroundLootCards
         Graphics2D g=(Graphics2D)original.create();
         try{
             Rectangle viewport=new Rectangle(client.getViewportXOffset()+3,client.getViewportYOffset()+3,client.getViewportWidth()-6,client.getViewportHeight()-6);if(viewport.width<120||viewport.height<20)return;g.clip(viewport);
-            Font plain=new Font(Font.SANS_SERIF,Font.PLAIN,config.labelFontSize()==0?12:LootAlerts.clamp(config.labelFontSize(),8,32)),bold=plain.deriveFont(Font.BOLD);g.setFont(plain);
-            int height=Math.max(LootCardPainter.height(g.getFontMetrics(plain),config.cardHeight()),LootCardPainter.height(g.getFontMetrics(bold),config.cardHeight()));
+            ImprovedLootingConfig.CardTheme theme=config.cardTheme();Color backgroundColor=config.cardBackgroundColor();
+            Font plain=LootCardPainter.font(theme,config.labelFontSize(),false),bold=LootCardPainter.font(theme,config.labelFontSize(),true);g.setFont(plain);
+            int height=Math.max(LootCardPainter.height(theme,g.getFontMetrics(plain),config.cardHeight()),LootCardPainter.height(theme,g.getFontMetrics(bold),config.cardHeight()));
             int size=LootCardPainter.iconSize(height),pitch=height+LootAlerts.clamp(config.labelSpacing(),0,16);
             int limit=LootAlerts.clamp(config.cardRows(),0,20),maximum=LootAlerts.clamp(config.maxLabels(),10,1000),drawn=0,overflow=0;
             Map<Tile,List<GroundLoot.Entry>> piles=new LinkedHashMap<>();boolean reveal=loot.reveal();
@@ -84,7 +85,7 @@ final class GroundLootCards
                     Paint rail=filter.equals(Color.WHITE)?new Color(tier.color):filter;
                     if(config.priceTiersEnabled()&&setup!=null){Paint effect=LootTextPaint.paint(tier,selected.seconds,System.nanoTime(),row.x,Math.max(80,width));if(effect!=null)rail=effect;}
                     double fraction=config.iconDespawnFade()?LootCardPainter.remaining(e.renderSpawnTick,e.renderDespawn,now):1;
-                    LootCardPainter.row(g,row,rail,image(e,size,fraction),config.lootCompact()?"":e.facts.getName(),e.renderQuantity,LootDisplayOptions.price(config,e),loot.labelHidden(e),config.cardBackground(),config.cardBorder(),config.cardOpacity(),config.cardShortPrices(),seconds(e));
+                    LootCardPainter.row(g,row,rail,image(e,size,fraction),config.lootCompact()?"":e.facts.getName(),e.renderQuantity,LootDisplayOptions.price(config,e),loot.labelHidden(e),config.cardBackground(),config.cardBorder(),config.cardOpacity(),config.cardShortPrices(),seconds(e),theme,backgroundColor);
                     if(input!=null)input.add(row,e,loot.labelHidden(e));
                 }
                 g.setFont(plain);
@@ -100,8 +101,10 @@ final class GroundLootCards
     }
     private void footer(Graphics2D g,Rectangle box,String text)
     {
-        LootCardPainter.surface(g,box,config.cardBackground(),config.cardBorder(),config.cardOpacity());g.setColor(LootCardPainter.VALUE);
+        LootCardPainter.surface(g,box,config.cardBackground(),config.cardBorder(),config.cardOpacity(),config.cardTheme(),config.cardBackgroundColor());g.setColor(LootCardPainter.VALUE);
         text=LootCardPainter.fit(text,g.getFontMetrics(),box.width-16);
-        g.drawString(text,box.x+(box.width-g.getFontMetrics().stringWidth(text))/2,box.y+(box.height-g.getFontMetrics().getHeight())/2+g.getFontMetrics().getAscent());
+        int x=box.x+(box.width-g.getFontMetrics().stringWidth(text))/2,y=box.y+(box.height-g.getFontMetrics().getHeight())/2+g.getFontMetrics().getAscent();
+        if(config.cardTheme()==ImprovedLootingConfig.CardTheme.OSRS){g.setColor(Color.BLACK);g.drawString(text,x+1,y+1);g.setColor(LootCardPainter.VALUE);}
+        g.drawString(text,x,y);
     }
 }

@@ -25,7 +25,7 @@ final class ImprovedLootingPanel extends PluginPanel
     {
         this.icons=icons; this.migration=migration;
         setLayout(new BorderLayout(0,10)); setBorder(BorderFactory.createEmptyBorder(10,8,10,8));
-        JPanel header=new JPanel(new BorderLayout(0,8));header.add(help("<b>Improved Looting</b><br>Beta • your filters, labels and alerts"),BorderLayout.NORTH);header.add(page,BorderLayout.SOUTH);add(header,BorderLayout.NORTH);
+        JPanel header=new JPanel(new BorderLayout(0,8));header.add(help("<b>Improved Looting</b><br>This plugin is currently in Beta mode"),BorderLayout.NORTH);header.add(page,BorderLayout.SOUTH);add(header,BorderLayout.NORTH);
         CardLayout pages=new CardLayout();JPanel tabs=new JPanel(pages);
         JPanel rules=column(),display=column(),appearance=column(),alerts=column();
         JLabel status=help(icons.filters.status()); rules.add(status);
@@ -62,7 +62,12 @@ final class ImprovedLootingPanel extends PluginPanel
         number(appearance,"Space between rows (pixels)","labelSpacing",config::labelSpacing,0,16);
         toggle(appearance,"Avoid enlarging pictures","originalImages",config::originalImages);
         JPanel cardStyle=column();section(cardStyle,"Cards only");appearance.add(cardStyle);
+        choice(cardStyle,"Card theme","cardTheme",ImprovedLootingConfig.CardTheme.values(),config::cardTheme);
+        cardStyle.add(help("Native keeps the current rounded cards. OSRS uses square bronze edges and RuneScape lettering."));
         toggle(cardStyle,"Card background","cardBackground",config::cardBackground);
+        JButton backgroundColor=backgroundColor(cardStyle,config);
+        JButton resetColor=new JButton("Use theme background color");cardStyle.add(resetColor);
+        resetColor.addActionListener(e->icons.configs.unsetConfiguration(ImprovedLootingConfig.GROUP,"cardBackgroundColor"));
         toggle(cardStyle,"Thin card border","cardBorder",config::cardBorder);
         JSpinner opacity=number(cardStyle,"Background opacity (%)","cardOpacity",config::cardOpacity,0,100);
         JCheckBox autoWidth=toggle(cardStyle,"Fit full item names","cardAutoWidth",config::cardAutoWidth);
@@ -88,6 +93,7 @@ final class ImprovedLootingPanel extends PluginPanel
             prices.setEnabled(!config.lootCompact());timers.setEnabled(!config.lootCompact());
             shortPrices.setEnabled(!config.lootCompact() && config.priceDisplay()!=ImprovedLootingConfig.DetailMode.HIDDEN);
             autoWidth.setEnabled(cards && !config.lootCompact());opacity.setEnabled(cards && config.cardBackground());
+            backgroundColor.setEnabled(cards && config.cardBackground());resetColor.setEnabled(cards && config.cardBackground() && config.cardBackgroundColor()!=null);
         });
         toggle(alerts,"Drop notifications","lootNotifications",config::lootNotifications);
         toggle(alerts,"Drop sounds","lootSounds",config::lootSounds);
@@ -118,6 +124,22 @@ final class ImprovedLootingPanel extends PluginPanel
                 } catch(Exception ex) { JOptionPane.showMessageDialog(ImprovedLootingPanel.this,ex.getCause()==null?ex.getMessage():ex.getCause().getMessage(),"Setup not copied",JOptionPane.WARNING_MESSAGE); }
             }
         }.execute();
+    }
+    private JButton backgroundColor(JPanel parent,ImprovedLootingConfig config)
+    {
+        parent.add(new JLabel("Background color"));JButton control=new JButton();parent.add(control);control.setOpaque(true);
+        control.setToolTipText("Choose a card background color. Background opacity is controlled separately.");
+        refreshers.add(()->{
+            Color color=LootCardPainter.background(config.cardTheme(),config.cardBackgroundColor());
+            control.setText(String.format(Locale.ROOT,"Choose: #%06X",color.getRGB()&0xffffff));control.setBackground(color);
+            control.setForeground(color.getRed()*299+color.getGreen()*587+color.getBlue()*114>145000?Color.BLACK:Color.WHITE);
+        });
+        control.addActionListener(e->{
+            Object profile=icons.configs.getProfile();Color before=config.cardBackgroundColor();ImprovedLootingConfig.CardTheme theme=config.cardTheme();
+            Color chosen=JColorChooser.showDialog(this,"Card background color",LootCardPainter.background(theme,before));
+            if(chosen!=null&&!closed&&Objects.equals(profile,icons.configs.getProfile())&&Objects.equals(before,config.cardBackgroundColor())&&theme==config.cardTheme())
+                icons.configs.setConfiguration(ImprovedLootingConfig.GROUP,"cardBackgroundColor",new Color(chosen.getRGB()));
+        });return control;
     }
     private JCheckBox toggle(JPanel parent,String label,String key,BooleanSupplier value)
     {

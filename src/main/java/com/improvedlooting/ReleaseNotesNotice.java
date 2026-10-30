@@ -22,7 +22,7 @@ final class ReleaseNotesNotice
     static final String RELEASE = "2026-10-30-initial-release";
     static final String SEEN_KEY = "releaseNotesShown";
     private static final String[] RECENT = {
-        "Compact ground cards: tier-colored text, pictures, quantities and optional prices, with adjustable size and borders.",
+        "Compact ground cards: tier-colored text, pictures, quantities and optional prices, with Native / OSRS themes, background colors, size and borders.",
         "Hold Alt to reveal hidden labels; Alt-click to hide or show every copy. Set a minimum stack value under Display.",
         "Seven price tiers have independent bold text and loot beam switches, without requiring filter rules.",
         "Choose text despawn timers, fading item pictures, both or neither.",
