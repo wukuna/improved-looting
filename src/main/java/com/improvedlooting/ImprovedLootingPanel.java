@@ -34,36 +34,35 @@ final class ImprovedLootingPanel extends PluginPanel
         button(rules,"Presets / full backup",()->{if(presets!=null)presets.close();presets=new LootProfilesEditor(profiles);presets.open(this);});
         button(rules,"Edit rules",()->{ if(editor!=null && editor.isOpen()) { editor.focus(); return; } editor=new FilterEditor(icons); editor.open(this); });
         button(rules,"Import / assets / backups",()->{ if(assets!=null) assets.close(); assets=new ItemIconEditor(icons); assets.open(this); });
-        button(rules,"Copy Right-Clicks setup",this::copyLegacy);
-        rules.add(help("Copy your existing filter and images without changing the original. Search for items and pick icons in Edit rules."));
+        hint(button(rules,"Copy Right-Clicks setup",this::copyLegacy),"Copy your filter and images here; the original setup is preserved.");
         section(display,"Ground items");
-        toggle(display,"Show ground labels","lootOverlay",config::lootOverlay);
+        hint(toggle(display,"Show ground labels","lootOverlay",config::lootOverlay),"Show this plugin's ground display. Disable overlapping ground labels in other plugins.");
         JLabel ground=help(loot.status()); display.add(ground);
         choice(display,"Display style","groundStyle",ImprovedLootingConfig.GroundStyle.values(),config::groundStyle);
-        toggle(display,"Pictures only (with quantity)","lootCompact",config::lootCompact);
+        JComboBox<ImprovedLootingConfig.CardTheme> cardTheme=choice(display,"Card theme","cardTheme",ImprovedLootingConfig.CardTheme.values(),config::cardTheme);
+        hint(cardTheme,"Native: rounded cards. OSRS: square bronze edges and RuneScape lettering. Applies to Cards only.");
+        hint(toggle(display,"Pictures only (with quantity)","lootCompact",config::lootCompact),"Show the picture and quantity; hide names, prices and text timers. Supplies an item picture if no rule does.");
         JComboBox<ImprovedLootingConfig.DetailMode> prices=choice(display,"Prices","priceDisplay",ImprovedLootingConfig.DetailMode.values(),config::priceDisplay);
         JComboBox<ImprovedLootingConfig.DetailMode> timers=choice(display,"Text timer","timerDisplay",ImprovedLootingConfig.DetailMode.values(),config::timerDisplay);
-        display.add(help("Hidden never shows that detail. Follow rules uses your filter. Always shows it whenever known. Pictures only suppresses names, prices and text timers."));
+        hint(prices,"Hidden: no prices. Follow rules: use your filter. Always: show known values.");
+        hint(timers,"Hidden: no text timer. Follow rules: use your filter. Always: show known despawn times.");
         JCheckBox shortPrices=toggle(display,"Short prices (8.3k gp)","cardShortPrices",config::cardShortPrices);
-        toggle(display,"Fade picture as loot expires","iconDespawnFade",config::iconDespawnFade);
-        display.add(help("Picture fade and text timers are independent. Unknown lifetimes do not fade."));
+        hint(toggle(display,"Fade picture as loot expires","iconDespawnFade",config::iconDespawnFade),"Fade pictures when the despawn time is known. Independent of the text timer.");
         section(display,"Visibility");
-        number(display,"Minimum value to appear (gp)","minimumLabelValue",config::minimumLabelValue,0,Integer.MAX_VALUE);
-        display.add(help("Uses the visible stack's GE value; 0 shows all values. Hold Alt to reveal hidden labels. Alt-click a visible label to hide every copy; Alt-click a hidden label to always show every copy, even below the minimum. Item menu actions are unchanged."));
+        hint(number(display,"Minimum value to appear (gp)","minimumLabelValue",config::minimumLabelValue,0,Integer.MAX_VALUE),"Minimum GE value for the visible stack. 0 shows all values; manually shown items bypass the minimum.");
+        JLabel shortcuts=help("Alt: reveal hidden<br>Alt-click: hide/show item");display.add(shortcuts);
+        hint(shortcuts,"Alt-click toggles every copy of that item. Showing a hidden item also bypasses the minimum value. Item menu actions are unchanged.");
         button(display,"Nearby loot / hidden labels",()->{if(browser!=null)browser.close();browser=new LootBrowser(loot,icons,thread,preferences);browser.open(this);});
         toggle(display,"Group matching stacks on a tile","groupStacks",config::groupStacks);
         choice(display,"Item order","labelOrder",ImprovedLootingConfig.LabelOrder.values(),config::labelOrder);
         choice(display,"Alignment at the pile","labelAlignment",ImprovedLootingConfig.LabelAlignment.values(),config::labelAlignment);
         number(display,"Range (tiles)","labelRange",config::labelRange,1,64);
         number(display,"Maximum labels","maxLabels",config::maxLabels,10,1000);
-        display.add(help("If labels overlap another plugin's labels, disable that other ground display."));
         section(appearance,"Text and pictures - both styles");
         number(appearance,"Text size (0: default)","labelFontSize",config::labelFontSize,0,32);
         number(appearance,"Space between rows (pixels)","labelSpacing",config::labelSpacing,0,16);
         toggle(appearance,"Avoid enlarging pictures","originalImages",config::originalImages);
         JPanel cardStyle=column();section(cardStyle,"Cards only");appearance.add(cardStyle);
-        choice(cardStyle,"Card theme","cardTheme",ImprovedLootingConfig.CardTheme.values(),config::cardTheme);
-        cardStyle.add(help("Native keeps the current rounded cards. OSRS uses square bronze edges and RuneScape lettering."));
         toggle(cardStyle,"Card background","cardBackground",config::cardBackground);
         JButton backgroundColor=backgroundColor(cardStyle,config);
         JButton resetColor=new JButton("Use theme background color");cardStyle.add(resetColor);
@@ -72,38 +71,35 @@ final class ImprovedLootingPanel extends PluginPanel
         JSpinner opacity=number(cardStyle,"Background opacity (%)","cardOpacity",config::cardOpacity,0,100);
         JCheckBox autoWidth=toggle(cardStyle,"Fit full item names","cardAutoWidth",config::cardAutoWidth);
         JSpinner manualWidth=number(cardStyle,"Manual width (pixels)","cardWidth",config::cardWidth,120,2048);
-        number(cardStyle,"Height (0: fit text)","cardHeight",config::cardHeight,0,96);
-        number(cardStyle,"Rows before expanding (0: all)","cardRows",config::cardRows,0,20);
-        cardStyle.add(help("Hover a stack to expand it. Automatic width fits the full line inside the game view. Pictures scale with height. Pictures-only cards always fit their contents."));
+        hint(autoWidth,"Fit the full line inside the game view. Pictures-only cards always fit their contents.");
+        hint(number(cardStyle,"Height (0: fit text)","cardHeight",config::cardHeight,0,96),"Minimum card height; pictures scale with it. 0 fits the text.");
+        hint(number(cardStyle,"Rows before expanding (0: all)","cardRows",config::cardRows,0,20),"Rows shown per pile; hover to expand. 0 shows all rows that fit.");
         JPanel labelStyle=column();section(labelStyle,"Labels only");appearance.add(labelStyle);
-        number(labelStyle,"Picture size (pixels)","iconSize",config::iconSize,12,96);
-        labelStyle.add(help("Plain labels use the icon, border and background selected by your rules. Pictures only supplies an item icon if no rule selects one."));
+        hint(number(labelStyle,"Picture size (pixels)","iconSize",config::iconSize,12,96),"Labels mode only. Rules select the picture, border and background.");
         section(appearance,"Price tiers and beams");
-        toggle(appearance,"Loot beams","lootBeams",config::lootBeams);
+        hint(toggle(appearance,"Loot beams","lootBeams",config::lootBeams),"Show beams enabled by your rules or price tiers.");
         button(appearance,"Edit seven price tiers",()->{if(tierEditor!=null)tierEditor.close();tierEditor=new PriceTierEditor(icons.tiers,icons.audio);tierEditor.open(this);});
-        toggle(appearance,"Tier animations and sounds","priceTiersEnabled",config::priceTiersEnabled);
-        appearance.add(help("Tier colors, Bold and Beam switches apply without enabling animations. Beams use the Loot beams master switch. Sounds also need Drop sounds in Alerts."));
+        hint(toggle(appearance,"Tier animations and sounds","priceTiersEnabled",config::priceTiersEnabled),"Adds tier effects. Colors, bold and beams work independently. Audio also needs Drop sounds under Alerts.");
         section(rules,"Menu integration");
-        toggle(rules,"Connect menu icons","shareMenuIcons",config::shareMenuIcons);
-        rules.add(help("Shares rule icons, visibility and colors with compatible Improved Right-Clicks TEST. Alt-click label hiding and the minimum label value only affect this ground display."));
+        hint(toggle(rules,"Connect menu icons","shareMenuIcons",config::shareMenuIcons),"Share rule icons, visibility and colors with compatible Improved Right-Clicks. Alt-click hiding and minimum value stay local to ground labels.");
         refreshers.add(()->{
             boolean cards=config.groundStyle()==ImprovedLootingConfig.GroundStyle.CARDS;
             enableControls(cardStyle,cards);enableControls(labelStyle,!cards);
+            cardTheme.setEnabled(cards);
             manualWidth.setEnabled(cards && !config.cardAutoWidth() && !config.lootCompact());
             prices.setEnabled(!config.lootCompact());timers.setEnabled(!config.lootCompact());
             shortPrices.setEnabled(!config.lootCompact() && config.priceDisplay()!=ImprovedLootingConfig.DetailMode.HIDDEN);
             autoWidth.setEnabled(cards && !config.lootCompact());opacity.setEnabled(cards && config.cardBackground());
             backgroundColor.setEnabled(cards && config.cardBackground());resetColor.setEnabled(cards && config.cardBackground() && config.cardBackgroundColor()!=null);
         });
-        toggle(alerts,"Drop notifications","lootNotifications",config::lootNotifications);
-        toggle(alerts,"Drop sounds","lootSounds",config::lootSounds);
+        hint(toggle(alerts,"Drop notifications","lootNotifications",config::lootNotifications),"Notify for new drops requested by rules. Existing piles stay silent.");
+        hint(toggle(alerts,"Drop sounds","lootSounds",config::lootSounds),"Play sounds requested by rules or enabled tiers for new drops. Import custom audio through Assets.");
         toggle(alerts,"Notification cards","notificationCards",config::notificationCards);
         number(alerts,"Sound volume (%)","alertVolume",config::alertVolume,0,100);
         number(alerts,"Sound cooldown (s)","soundCooldown",config::soundCooldown,0,60);
         toggle(alerts,"Despawn warnings","despawnWarnings",config::despawnWarnings);
         number(alerts,"Warning time (s)","despawnSeconds",config::despawnSeconds,1,120);
         number(alerts,"Minimum stack value","despawnMinimum",config::despawnMinimum,0,Integer.MAX_VALUE);
-        alerts.add(help("Only new drops requested by your rules can alert. Existing piles are silent. Import custom audio through Assets."));
         tabs.add(scroll(display),"Display");tabs.add(scroll(appearance),"Style");tabs.add(scroll(rules),"Rules and imports");tabs.add(scroll(alerts),"Alerts");add(tabs,BorderLayout.CENTER);
         page.addActionListener(e->pages.show(tabs,(String)page.getSelectedItem()));
         syncing=true;refreshers.forEach(Runnable::run);syncing=false;
@@ -128,7 +124,7 @@ final class ImprovedLootingPanel extends PluginPanel
     private JButton backgroundColor(JPanel parent,ImprovedLootingConfig config)
     {
         parent.add(new JLabel("Background color"));JButton control=new JButton();parent.add(control);control.setOpaque(true);
-        control.setToolTipText("Choose a card background color. Background opacity is controlled separately.");
+        hint(control,"Choose a card background color. Opacity is controlled separately.");
         refreshers.add(()->{
             Color color=LootCardPainter.background(config.cardTheme(),config.cardBackgroundColor());
             control.setText(String.format(Locale.ROOT,"Choose: #%06X",color.getRGB()&0xffffff));control.setBackground(color);
@@ -166,6 +162,11 @@ final class ImprovedLootingPanel extends PluginPanel
     private static JScrollPane scroll(JPanel panel) { JPanel outer=new JPanel(new BorderLayout());outer.add(panel,BorderLayout.NORTH);JScrollPane scroll=new JScrollPane(outer);scroll.setBorder(null);scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);return scroll; }
     private static String html(String text) { return "<html><body style='width:150px'>"+text+"</body></html>"; }
     private static JLabel help(String text) { return new JLabel(html(text)); }
-    private void button(JPanel p,String text,Runnable action) { JButton b=new JButton(text); b.addActionListener(e->action.run()); p.add(b); }
+    private static void hint(JComponent control,String text)
+    {
+        String tooltip=html(text);control.setToolTipText(tooltip);
+        if(control instanceof JSpinner){JComponent editor=((JSpinner)control).getEditor();editor.setToolTipText(tooltip);if(editor instanceof JSpinner.DefaultEditor)((JSpinner.DefaultEditor)editor).getTextField().setToolTipText(tooltip);}
+    }
+    private JButton button(JPanel p,String text,Runnable action) { JButton b=new JButton(text); b.addActionListener(e->action.run()); p.add(b); return b; }
     void close() { closed=true; timer.stop(); if(browser!=null)browser.close();if(presets!=null)presets.close(); if(editor!=null) editor.close(); if(assets!=null) assets.close();if(tierEditor!=null)tierEditor.close(); }
 }
