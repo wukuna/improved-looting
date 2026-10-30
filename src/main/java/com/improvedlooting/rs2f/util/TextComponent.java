@@ -1,0 +1,69 @@
+// Adapted from riktenx/loot-filters (BSD-2-Clause); see loot-filters-LICENSE.txt.
+package com.improvedlooting.rs2f.util;
+
+import com.improvedlooting.rs2f.model.TextAccent;
+import lombok.Setter;
+import net.runelite.client.ui.overlay.RenderableEntity;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Point;
+
+// simplified version of runelite's TextComponent API for our purposes, adding support for _no_ text accent as well as
+// text accent color
+@Setter
+public class TextComponent implements RenderableEntity {
+    private String text;
+    private Color color = Color.WHITE;
+    private java.awt.Paint foregroundPaint;
+    private Color accentColor = Color.BLACK;
+    private TextAccent textAccent = TextAccent.SHADOW;
+    private Point position;
+
+    @Override
+    public Dimension render(Graphics2D g) {
+        var origColor = g.getPaint();
+
+        g.setColor(accentColor);
+
+        switch (textAccent) {
+            case SHADOW:
+                g.drawString(text, position.x + 1, position.y + 1);
+                break;
+            case OUTLINE:
+                g.drawString(text, position.x + 1, position.y);
+                g.drawString(text, position.x, position.y + 1);
+                g.drawString(text, position.x - 1, position.y);
+                g.drawString(text, position.x, position.y - 1);
+                break;
+            case SHADOW_BOLD:
+                g.drawString(text, position.x + 1, position.y);
+                g.drawString(text, position.x - 1, position.y);
+
+                g.drawString(text, position.x, position.y + 1);
+                g.drawString(text, position.x, position.y - 1);
+
+                g.drawString(text, position.x + 1, position.y + 1);
+                g.drawString(text, position.x - 1, position.y - 1);
+
+                g.drawString(text, position.x + 1, position.y - 1);
+                g.drawString(text, position.x - 1, position.y + 1);
+
+                g.drawString(text, position.x + 2, position.y);
+                g.drawString(text, position.x, position.y + 2);
+
+                g.drawString(text, position.x + 2, position.y + 1);
+                g.drawString(text, position.x + 1, position.y + 2);
+                break;
+            default:
+                break;
+        }
+
+        g.setPaint(foregroundPaint == null ? color : foregroundPaint);
+        g.drawString(text, position.x, position.y);
+
+        g.setPaint(origColor);
+        return null;
+    }
+}
