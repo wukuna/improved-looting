@@ -1,0 +1,96 @@
+package com.improvedlooting;
+
+import com.improvedlooting.rs2f.model.ItemFacts;
+import java.util.*;
+import net.runelite.api.*;
+import net.runelite.api.events.MenuOpened;
+import net.runelite.client.util.Text;
+
+/** Presentation only: never changes the scene's item deque or invokes an action. */
+final class LootPileOrder {
+    private LootPileOrder() {}
+
+    static int category(ItemFacts facts) {
+        if (!facts.isTradeable()) return 2;
+        String name = facts.getName().toLowerCase(Locale.ROOT);
+        return name.equals("bones") || name.endsWith(" bones") || name.equals("ashes") || name.endsWith(" ashes") ? 1 : 0;
+    }
+
+    static int compare(ItemFacts a, long aq, ItemFacts b, long bq) {
+        int category = Integer.compare(category(a), category(b));
+        return category != 0 ? category : Long.compare(PriceTiers.value(b.getGePrice(), bq), PriceTiers.value(a.getGePrice(), aq));
+    }
+
+    static Comparator<GroundLoot.Entry> labels() {
+        return (a, b) -> compare(a.facts, a.renderQuantity, b.facts, b.renderQuantity);
+    }
+
+    // Integer ranks give the existing Right-Clicks provider exactly the same order,
+    // without truncating long stack values into an int or changing rule visibility.
+    static Map<Integer, Integer> ranks(Tile tile, FilterIcons filters, ImprovedLootingConfig config) {
+        if (tile == null || tile.getGroundItems() == null) return Collections.emptyMap();
+        Map<Integer, ItemFacts> facts = new LinkedHashMap<>();
+        Map<Integer, Long> quantities = new HashMap<>();
+        Map<Integer, Boolean> visible = new HashMap<>();
+        for (TileItem item : tile.getGroundItems()) {
+            ItemFacts f = filters.facts(tile, item);
+            boolean owned = !config.onlyShowOwnedDrops() || item.getOwnership() == TileItem.OWNERSHIP_SELF || item.getOwnership() == TileItem.OWNERSHIP_GROUP;
+            boolean existing = facts.containsKey(f.getId());
+            if (existing && visible.get(f.getId()) && !owned) continue;
+            if (!existing || !visible.get(f.getId()) && owned) {
+                facts.put(f.getId(), f); quantities.put(f.getId(), (long)f.getQuantity()); visible.put(f.getId(), owned);
+            } else {
+                quantities.merge(f.getId(), (long)f.getQuantity(), config.groupStacks() ? LootPileOrder::sum : Math::max);
+            }
+        }
+        List<Integer> ids = new ArrayList<>(facts.keySet());
+        ids.sort((a,b) -> compare(facts.get(a), quantities.get(a), facts.get(b), quantities.get(b)));
+        Map<Integer,Integer> result = new HashMap<>();
+        int rank = 0;
+        for (int i = 0; i < ids.size(); i++) {
+            int id = ids.get(i);
+            if (i > 0 && compare(facts.get(ids.get(i-1)), quantities.get(ids.get(i-1)), facts.get(id), quantities.get(id)) != 0) rank = i;
+            result.put(id, -rank); // RuneLite's menu array is bottom to top.
+        }
+        return result;
+    }
+
+    private static long sum(long a, long b) { return a > Long.MAX_VALUE - b ? Long.MAX_VALUE : a + b; }
+
+    static void opened(Client client, FilterIcons filters, ImprovedLootingConfig config, MenuOpened event) {
+        if (!config.prioritizeLoot() || client.getGameState() != GameState.LOGGED_IN) return;
+        MenuEntry[] original = client.getMenu().getMenuEntries(), sorted = original.clone();
+        Map<List<Integer>, List<Integer>> piles = new LinkedHashMap<>();
+        for (int i = 0; i < original.length; i++) {
+            MenuEntry e = original[i];
+            if (!take(e)) continue;
+            List<Integer> key = Arrays.asList(e.getWorldViewId(), e.getParam0(), e.getParam1(), e.isDeprioritized() ? 1 : 0);
+            piles.computeIfAbsent(key, k -> new ArrayList<>()).add(i);
+        }
+        for (List<Integer> slots : piles.values()) {
+            if (slots.size() < 2) continue;
+            MenuEntry first = original[slots.get(0)];
+            WorldView view = client.getWorldView(first.getWorldViewId());
+            if (view == null || view.getScene() == null) continue;
+            Tile[][][] tiles = view.getScene().getTiles();
+            int p = view.getPlane(), x = first.getParam0(), y = first.getParam1();
+            if (tiles == null || p < 0 || p >= tiles.length || tiles[p] == null || x < 0 || x >= tiles[p].length
+                || tiles[p][x] == null || y < 0 || y >= tiles[p][x].length) continue;
+            Map<Integer,Integer> ranks = ranks(tiles[p][x][y], filters, config);
+            List<Integer> known = new ArrayList<>();
+            List<MenuEntry> entries = new ArrayList<>();
+            for (int slot : slots) if (ranks.containsKey(original[slot].getIdentifier())) { known.add(slot); entries.add(original[slot]); }
+            entries.sort(Comparator.comparingInt(e -> ranks.get(e.getIdentifier())));
+            for (int i = 0; i < known.size(); i++) sorted[known.get(i)] = entries.get(i);
+        }
+        if (!Arrays.equals(original, sorted)) { client.getMenu().setMenuEntries(sorted); event.setMenuEntries(sorted); }
+    }
+
+    private static boolean take(MenuEntry entry) {
+        MenuAction type = entry.getType();
+        return entry.onClick() == null && entry.getSubMenu() == null && !entry.isForceLeftClick()
+            && (type == MenuAction.GROUND_ITEM_FIRST_OPTION || type == MenuAction.GROUND_ITEM_SECOND_OPTION
+            || type == MenuAction.GROUND_ITEM_THIRD_OPTION || type == MenuAction.GROUND_ITEM_FOURTH_OPTION
+            || type == MenuAction.GROUND_ITEM_FIFTH_OPTION) && "Take".equals(Text.removeTags(entry.getOption()));
+    }
+}

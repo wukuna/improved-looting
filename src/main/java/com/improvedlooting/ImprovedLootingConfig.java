@@ -26,6 +26,8 @@ public interface ImprovedLootingConfig extends Config
     default boolean shareMenuIcons() { return false; }
 
     enum LabelOrder { VALUE, DISTANCE, NAME, TIME }
+    @ConfigItem(keyName="prioritizeLoot",name="Prioritize valuable loot",description="Normal loot by value, then bones/ashes, then untradeables; labels and opened Take menus",hidden=true)
+    default boolean prioritizeLoot() { return true; }
     enum LabelAlignment { CENTER, LEFT, RIGHT }
     enum GroundStyle { CARDS, LABELS }
     enum CardTheme {

@@ -29,6 +29,7 @@ final class GroundLoot
     @Inject LootAlerts alerts;
     @Inject PriceTiers tiers;
     private final Map<TileItem, Entry> entries = new IdentityHashMap<>();
+    private final Map<Tile, Map<Integer,Integer>> menuRanks = new IdentityHashMap<>();
     private final Set<Tile> beamTiles = Collections.newSetFromMap(new IdentityHashMap<>());
     private volatile FilterIcons.Prepared prepared;
     private volatile boolean running;
@@ -58,6 +59,7 @@ final class GroundLoot
         Entry(Tile tile, TileItem item) { this.tile = tile; this.item = item; }
     }
     Collection<Entry> entries() { return ordered; }
+    int menuRank(Tile tile, int id, int fallback) { return menuRanks.computeIfAbsent(tile,t -> LootPileOrder.ranks(t,filters,config)).getOrDefault(id,fallback); }
     List<LootRow> rows() { return rows; }
     void select(long key) { selected = key; selectedUntil = client.getTickCount() + 17; }
     boolean selected(Entry e) { return e.key == selected && client.getTickCount() <= selectedUntil; }
@@ -90,12 +92,14 @@ final class GroundLoot
     double renderTick() { return client.getTickCount() + (lastTickNanos == 0 ? 0 : Math.min(1, (System.nanoTime()-lastTickNanos)/600000000.0)); }
     void refreshSettings()
     {
+        menuRanks.clear();
         prepared=null;
         for(Entry e:entries.values()){e.facts=null;e.image=null;beamOff(e);}
         ordered=Collections.emptyList();rows=Collections.emptyList();
     }
     void clear()
     {
+        menuRanks.clear();
         for (Entry e : entries.values()) beamOff(e);
         entries.clear(); beamTiles.clear(); prepared = null; running = false; localViewId=Integer.MIN_VALUE; rows = Collections.emptyList(); ordered = Collections.emptyList(); selected = -1; if(alerts != null) alerts.clear();
     }
@@ -109,6 +113,7 @@ final class GroundLoot
     }
     @Subscribe public void onGameTick(GameTick event)
     {
+        menuRanks.clear();
         evaluationsRemaining=256;
         lastTickNanos=System.nanoTime();
         if(alerts != null) alerts.tick();
@@ -153,15 +158,18 @@ final class GroundLoot
     }
     private void add(Tile tile, TileItem item, boolean alert)
     {
+        menuRanks.remove(tile);
         if (!running || entries.containsKey(item) || entries.size() >= MAX_ITEMS) return;
         Entry entry = new Entry(tile, item); entry.key = ++sequence; entry.spawnTick = client.getTickCount(); entry.pendingDrop = alert; entries.put(item, entry); update(entry, false);
     }
     @Subscribe public void onItemSpawned(ItemSpawned e) { add(e.getTile(), e.getItem(), true); }
-    @Subscribe public void onItemDespawned(ItemDespawned e) { Entry old = entries.remove(e.getItem()); if (old != null) beamOff(old); }
-    @Subscribe public void onItemQuantityChanged(ItemQuantityChanged e) { Entry old = entries.get(e.getItem()); if (old != null) {old.facts=null;update(old, false);} }
+    @Subscribe(priority=1) public void onMenuOpened(MenuOpened e) { menuRanks.clear(); LootPileOrder.opened(client, filters, config, e); }
+    @Subscribe public void onItemDespawned(ItemDespawned e) { menuRanks.remove(e.getTile()); Entry old = entries.remove(e.getItem()); if (old != null) beamOff(old); }
+    @Subscribe public void onItemQuantityChanged(ItemQuantityChanged e) { menuRanks.remove(e.getTile()); Entry old = entries.get(e.getItem()); if (old != null) {old.facts=null;update(old, false);} }
     @Subscribe public void onGameStateChanged(GameStateChanged e) { if (e.getGameState() != GameState.LOGGED_IN) clear(); }
     @Subscribe public void onWorldViewUnloaded(WorldViewUnloaded e)
     {
+        menuRanks.clear();
         entries.values().removeIf(entry -> { if (entry.tile.getLocalLocation().getWorldView() == e.getWorldView().getId()) { beamOff(entry); return true; } return false; });
     }
     private void update(Entry e, boolean alert)
@@ -207,6 +215,7 @@ final class GroundLoot
                 if(e.renderDespawn>0 && (lead.renderDespawn<=0 || e.renderDespawn<lead.renderDespawn)){lead.renderDespawn=e.renderDespawn;lead.renderSpawnTick=e.spawnTick;}}
         }
         if(group && order==ImprovedLootingConfig.LabelOrder.VALUE)nearby.sort(Comparator.<Entry>comparingLong(e->PriceTiers.value(e.facts.getGePrice(),e.renderQuantity)).reversed().thenComparing(byName).thenComparingLong(e->e.key));
+        if(config.prioritizeLoot())nearby.sort(LootPileOrder.labels().thenComparing(byName).thenComparingLong(e->e.key));
         List<LootRow> next = new ArrayList<>();
         for (Entry e : nearby)
         {

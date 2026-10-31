@@ -19,14 +19,14 @@ import net.runelite.client.events.ProfileChanged;
 @Singleton
 final class ReleaseNotesNotice
 {
-    static final String RELEASE = "2026-10-30-visibility-panel";
+    static final String RELEASE = "2026-10-31-pile-order";
     static final String SEEN_KEY = "releaseNotesShown";
     private static final String[] RECENT = {
+        "Prioritize valuable loot: normal drops highest-value first, then bones/ashes, then untradeables, in labels and opened Take menus.",
         "Display now offers Only show owned drops, an untradeable minimum-value exception, and an untradeable color picker defaulting to red.",
         "Native / OSRS sits directly below Cards / Labels on Display; brief tooltips keep the panel compact.",
         "Compact ground cards: tier-colored text, pictures, quantities and optional prices, with Native / OSRS themes, background colors, size and borders.",
         "Hold Alt to reveal hidden labels; Alt-click to hide or show every copy. Set a minimum stack value under Display.",
-        "Seven price tiers have independent bold text and loot beam switches, without requiring filter rules.",
     };
 
     @Inject private Client client;

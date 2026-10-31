@@ -33,7 +33,11 @@ Enable **Improved Looting** and open its chest side panel. Choose **Display**, e
 
 Another active Ground Items / Loot Filters display now produces a visible overlap warning instead of silently suppressing our cards. Turn off the other display if you see duplicate labels. No other plugin's settings are changed. The nearby browser can still operate with our display off. Sounds, notifications, despawn warnings and price effects retain their saved switches and start disabled for new profiles.
 
-**Connect menu icons** supplies resolved visibility, menu priority, color and independent images to a compatible Improved Right-Clicks version. Its existing icon and menu-compatibility switches control consumption. It retains ownership of Native / Custom / Both, colors, sorting and menu behavior. Turning the connection off allows its existing Loot Filters provider to be used. Neither plugin changes the other's settings.
+**Display → Prioritize valuable loot** starts enabled. Top to bottom, each pile shows normal tradeable loot by total GE value (highest first), then bones/ashes, then untradeables. Bones/ashes are recognized by their item names; this does not attempt to identify which monster dropped an item. Cards, classic labels and opened right-click Take rows use this order. Grouped quantities supply the stack value; owned-only grouping excludes other players' quantities. Turn it off to restore your saved Item order and filter menu priorities. The switch is included in backups and presets.
+
+Only ordinary Take rows on the same tile and world view are reordered. Other actions, callbacks, submenus and existing deprioritized groups keep their positions. No scene items, normal left-click actions or pickup behavior are changed; each click still performs one normal action.
+
+**Connect menu icons** supplies resolved visibility, menu priority, color and independent images to a compatible Improved Right-Clicks version. Its existing icon and menu-compatibility switches control consumption. The priority above is shared with that plugin when enabled; otherwise the filter's menu sort value is retained. Native / Custom / Both and colors keep their independent controls. Turning the connection off allows its existing Loot Filters provider to be used. Neither plugin changes the other's settings.
 
 ## Bounds and limitations
 

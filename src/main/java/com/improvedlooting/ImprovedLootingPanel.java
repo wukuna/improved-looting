@@ -57,7 +57,8 @@ final class ImprovedLootingPanel extends PluginPanel
         hint(shortcuts,"Alt-click toggles every copy of that item. Showing a hidden item also bypasses the minimum value. Item menu actions are unchanged.");
         button(display,"Nearby loot / hidden labels",()->{if(browser!=null)browser.close();browser=new LootBrowser(loot,icons,thread,preferences);browser.open(this);});
         toggle(display,"Group matching stacks on a tile","groupStacks",config::groupStacks);
-        choice(display,"Item order","labelOrder",ImprovedLootingConfig.LabelOrder.values(),config::labelOrder);
+        hint(toggle(display,"Prioritize valuable loot","prioritizeLoot",config::prioritizeLoot),"Top to bottom: normal loot by total GE value, bones/ashes, then untradeables. Applies to cards, labels and opened Take menus. Overrides Item order and filter menu sorting while enabled; normal left-click behavior is unchanged.");
+        hint(choice(display,"Item order","labelOrder",ImprovedLootingConfig.LabelOrder.values(),config::labelOrder),"Used when Prioritize valuable loot is off.");
         choice(display,"Alignment at the pile","labelAlignment",ImprovedLootingConfig.LabelAlignment.values(),config::labelAlignment);
         number(display,"Range (tiles)","labelRange",config::labelRange,1,64);
         number(display,"Maximum labels","maxLabels",config::maxLabels,10,1000);

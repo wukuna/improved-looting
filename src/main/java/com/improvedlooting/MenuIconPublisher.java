@@ -42,6 +42,7 @@ final class MenuIconPublisher
         for(TileItem item:tile.getGroundItems())if(item.getId()==id){DisplayConfig next=loot.resolved(tile,item);if(next==null)return;if(chosen!=null&&!equivalent(chosen,next)){data.put("status","ambiguous");return;}chosen=next;}
         if(chosen==null)return;
         Map<String,Object> display=new HashMap<>();display.put("hidden",chosen.isHidden());display.put("hideOverlay",chosen.isHideOverlay());display.put("menuSort",chosen.getMenuSort());display.put("menuTextColor",chosen.getMenuTextColor());
+        if(config.prioritizeLoot())display.put("menuSort",loot.menuRank(tile,id,chosen.getMenuSort()));
         if(!chosen.isHideOverlay())display.put("icon",descriptor(chosen,id));
         data.put("display",Collections.unmodifiableMap(display));data.put("status","ok");
     }

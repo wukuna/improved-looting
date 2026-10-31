@@ -37,7 +37,17 @@ final class GroundLootOverlay extends Overlay
             Map<Tile, Integer> offsets = new IdentityHashMap<>();
             Set<Tile> highlighted = Collections.newSetFromMap(new IdentityHashMap<>());
             int count = 0;
+            java.util.List<GroundLoot.Entry> paintOrder = new ArrayList<>();
             for (GroundLoot.Entry entry : loot.entries()) {
+                if (entry.grouped || entry.display == null || !loot.inRange(entry, LootAlerts.clamp(config.labelRange(),1,64))
+                    || entry.tile.getItemLayer() == null || loot.labelHidden(entry) && !loot.reveal()) continue;
+                if (paintOrder.size() >= LootAlerts.clamp(config.maxLabels(),10,1000)) break;
+                paintOrder.add(entry);
+            }
+            // Labels grow upwards; cards grow downwards. Select highest-priority rows
+            // before reversing so a label limit never favors the lowest-value items.
+            if (config.prioritizeLoot()) Collections.reverse(paintOrder);
+            for (GroundLoot.Entry entry : paintOrder) {
                 if (loot.selected(entry)) {
                     Polygon poly=Perspective.getCanvasTilePoly(client,entry.tile.getLocalLocation());
                     if(poly!=null){g.setColor(new Color(80,220,255,50));g.fill(poly);g.setColor(Color.CYAN);g.draw(poly);}
