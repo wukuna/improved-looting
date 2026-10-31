@@ -30,7 +30,7 @@ public class LootRuntimeTest
         TileItem item(int id,int quantity,int expiry)
         {
             TileItem item=mock(TileItem.class);when(item.getId()).thenReturn(id);when(item.getQuantity()).thenReturn(quantity);when(item.getDespawnTime()).thenReturn(expiry);
-            when(loot.filters.facts(tile,item)).thenReturn(ItemFacts.builder().id(id).name("Item "+id).quantity(quantity).gePrice(10000).build());return item;
+            when(loot.filters.facts(tile,item)).thenReturn(ItemFacts.builder().id(id).name("Item "+id).quantity(quantity).gePrice(10000).tradeable(true).geTradeable(true).build());return item;
         }
         void tick(int tick){when(loot.client.getTickCount()).thenReturn(tick);loot.onGameTick(new GameTick());}
     }

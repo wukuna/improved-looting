@@ -14,6 +14,8 @@ public class PanelLayoutTest
             ImprovedLootingPanel panel=new ImprovedLootingPanel(icons,mock(ImprovedLootingConfig.class,CALLS_REAL_METHODS),loot,new LegacyImport(),mock(net.runelite.client.callback.ClientThread.class),new LootPreferences(),new LootProfiles());panel.setSize(263,650);layout(panel);
             BufferedImage image=new BufferedImage(263,650,BufferedImage.TYPE_INT_RGB);Graphics2D g=image.createGraphics();panel.printAll(g);g.dispose();
             try{ImageIO.write(image,"png",new java.io.File("build/panel-preview.png"));}catch(Exception e){throw new AssertionError(e);}
+            panel.setSize(263,1100);layout(panel);image=new BufferedImage(263,1100,BufferedImage.TYPE_INT_RGB);g=image.createGraphics();panel.printAll(g);g.dispose();
+            try{ImageIO.write(image,"png",new java.io.File("build/visibility-panel-preview.png"));}catch(Exception e){throw new AssertionError(e);}
             panel.page.setSelectedItem("Style");
             panel.setSize(263,1050);layout(panel);image=new BufferedImage(263,1050,BufferedImage.TYPE_INT_RGB);g=image.createGraphics();panel.printAll(g);g.dispose();panel.close();
             try{ImageIO.write(image,"png",new java.io.File("build/card-appearance-preview.png"));}catch(Exception e){throw new AssertionError(e);}

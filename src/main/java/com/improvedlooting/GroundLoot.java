@@ -81,11 +81,11 @@ final class GroundLoot
     boolean reveal() { return client.isKeyPressed(KeyCode.KC_ALT); }
     boolean labelHidden(Entry e) {
         Boolean manual=preferences==null?null:preferences.labelHidden(e.item.getId());
-        return LootDisplayOptions.hidden(e.display.isHideOverlay(),manual,PriceTiers.value(e.facts.getGePrice(),e.renderQuantity),config.minimumLabelValue());
+        return LootDisplayOptions.ownershipHidden(config,e) || LootDisplayOptions.hidden(e.display.isHideOverlay(),manual,PriceTiers.value(e.facts.getGePrice(),e.renderQuantity),LootDisplayOptions.minimum(config,e));
     }
     boolean locallyHidden(Entry e) {
         Boolean manual=preferences==null?null:preferences.labelHidden(e.item.getId());
-        return LootDisplayOptions.hidden(false,manual,PriceTiers.value(e.facts.getGePrice(),e.renderQuantity),config.minimumLabelValue());
+        return LootDisplayOptions.ownershipHidden(config,e) || LootDisplayOptions.hidden(false,manual,PriceTiers.value(e.facts.getGePrice(),e.renderQuantity),LootDisplayOptions.minimum(config,e));
     }
     double renderTick() { return client.getTickCount() + (lastTickNanos == 0 ? 0 : Math.min(1, (System.nanoTime()-lastTickNanos)/600000000.0)); }
     void refreshSettings()
@@ -201,7 +201,7 @@ final class GroundLoot
         {
             e.grouped=false; e.renderQuantity=e.facts.getQuantity(); e.renderDespawn=e.item.getDespawnTime();e.renderSpawnTick=e.spawnTick;
             if(!group) continue;
-            List<Object> key=Arrays.asList(e.tile,e.item.getId(),e.display,e.source);
+            List<Object> key=Arrays.asList(e.tile,e.item.getId(),e.display,e.source,LootDisplayOptions.ownershipHidden(config,e));
             Entry lead=groups.putIfAbsent(key,e);
             if(lead!=null) {e.grouped=true;lead.renderQuantity+=e.renderQuantity;
                 if(e.renderDespawn>0 && (lead.renderDespawn<=0 || e.renderDespawn<lead.renderDespawn)){lead.renderDespawn=e.renderDespawn;lead.renderSpawnTick=e.spawnTick;}}

@@ -49,7 +49,10 @@ final class ImprovedLootingPanel extends PluginPanel
         JCheckBox shortPrices=toggle(display,"Short prices (8.3k gp)","cardShortPrices",config::cardShortPrices);
         hint(toggle(display,"Fade picture as loot expires","iconDespawnFade",config::iconDespawnFade),"Fade pictures when the despawn time is known. Independent of the text timer.");
         section(display,"Visibility");
+        hint(toggle(display,"Only show owned drops","onlyShowOwnedDrops",config::onlyShowOwnedDrops),"Show your drops and shared Group Ironman loot, using the game's ownership flag. Public/unowned and other-player drops are hidden, including beams and alerts. Hold Alt to reveal hidden labels temporarily.");
         hint(number(display,"Minimum value to appear (gp)","minimumLabelValue",config::minimumLabelValue,0,Integer.MAX_VALUE),"Minimum GE value for the visible stack. 0 shows all values; manually shown items bypass the minimum.");
+        hint(toggle(display,"Keep untradeables visible","keepUntradeablesVisible",config::keepUntradeablesVisible),"Untradeable items bypass the minimum value, including items with no GE price. Your ownership filter and explicit hide rules still apply.");
+        untradeableColor(display,config);
         JLabel shortcuts=help("Alt: reveal hidden<br>Alt-click: hide/show item");display.add(shortcuts);
         hint(shortcuts,"Alt-click toggles every copy of that item. Showing a hidden item also bypasses the minimum value. Item menu actions are unchanged.");
         button(display,"Nearby loot / hidden labels",()->{if(browser!=null)browser.close();browser=new LootBrowser(loot,icons,thread,preferences);browser.open(this);});
@@ -120,6 +123,22 @@ final class ImprovedLootingPanel extends PluginPanel
                 } catch(Exception ex) { JOptionPane.showMessageDialog(ImprovedLootingPanel.this,ex.getCause()==null?ex.getMessage():ex.getCause().getMessage(),"Setup not copied",JOptionPane.WARNING_MESSAGE); }
             }
         }.execute();
+    }
+    private void untradeableColor(JPanel parent,ImprovedLootingConfig config)
+    {
+        parent.add(new JLabel("Untradeable color"));JButton control=new JButton();parent.add(control);control.setOpaque(true);
+        hint(control,"Default color for untradeable names and card accents in both styles. Explicit rule colors take priority; price-tier animations do not replace this color.");
+        refreshers.add(()->{
+            Color color=config.untradeableColor();if(color==null)color=new Color(0xff5555);
+            control.setText(String.format(Locale.ROOT,"Choose: #%06X",color.getRGB()&0xffffff));control.setBackground(color);
+            control.setForeground(color.getRed()*299+color.getGreen()*587+color.getBlue()*114>145000?Color.BLACK:Color.WHITE);
+        });
+        control.addActionListener(e->{
+            Object profile=icons.configs.getProfile();Color before=config.untradeableColor();
+            Color chosen=JColorChooser.showDialog(this,"Untradeable color",before==null?new Color(0xff5555):before);
+            if(chosen!=null&&!closed&&Objects.equals(profile,icons.configs.getProfile())&&Objects.equals(before,config.untradeableColor()))
+                icons.configs.setConfiguration(ImprovedLootingConfig.GROUP,"untradeableColor",new Color(chosen.getRGB()));
+        });
     }
     private JButton backgroundColor(JPanel parent,ImprovedLootingConfig config)
     {

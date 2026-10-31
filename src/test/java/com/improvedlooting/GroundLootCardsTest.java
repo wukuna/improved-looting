@@ -32,6 +32,30 @@ public class GroundLootCardsTest
     private static BufferedImage sprite(){BufferedImage image=new BufferedImage(20,20,BufferedImage.TYPE_INT_ARGB);Graphics2D g=image.createGraphics();g.setColor(Color.CYAN);g.fillRect(0,0,20,20);g.dispose();return image;}
     private static BufferedImage render(GroundLootCards cards){BufferedImage image=new BufferedImage(800,600,BufferedImage.TYPE_INT_ARGB);Graphics2D g=image.createGraphics();cards.render(g);g.dispose();return image;}
     private static int top(BufferedImage image){for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++)if((image.getRGB(x,y)>>>24)>0)return y;return -1;}
+    @Test public void untradeablesRenderInSelectedColorAndOwnershipHidesBothThemes() throws Exception
+    {
+        LootRuntimeTest.Fixture f=new LootRuntimeTest.Fixture("rule(true){}");GroundLootCards cards=cards(f,1);
+        GroundLoot.Entry entry=f.loot.entries().iterator().next();
+        entry.facts=com.improvedlooting.rs2f.model.ItemFacts.builder().id(1).name("Untradeable drop").quantity(1).gePrice(0).tradeable(false).build();
+        when(f.loot.config.minimumLabelValue()).thenReturn(600);
+        when(f.loot.config.priceTiersEnabled()).thenReturn(true);
+        PriceTiers.Setup setup=PriceTiers.defaults();setup.tiers[0].effect=PriceTiers.Effect.RGB;
+        cards.tiers=new PriceTiers();cards.tiers.configs=mock(net.runelite.client.config.ConfigManager.class);cards.tiers.gson=new com.google.gson.Gson();cards.tiers.save(cards.tiers.prepare(setup));
+        for(ImprovedLootingConfig.CardTheme theme:ImprovedLootingConfig.CardTheme.values())
+        {
+            when(f.loot.config.cardTheme()).thenReturn(theme);
+            when(f.loot.config.onlyShowOwnedDrops()).thenReturn(false);
+            when(f.loot.config.untradeableColor()).thenReturn(new Color(0xff5555));
+            BufferedImage red=render(cards);assertTrue(top(red)>0);assertTrue(hasColor(red,0xffff5555));
+            javax.imageio.ImageIO.write(red,"png",new java.io.File("build/untradeable-"+theme.name().toLowerCase()+"-preview.png"));
+            when(f.loot.config.untradeableColor()).thenReturn(new Color(0x12ab34));assertTrue(hasColor(render(cards),0xff12ab34));
+            when(f.loot.config.onlyShowOwnedDrops()).thenReturn(true);when(entry.item.getOwnership()).thenReturn(net.runelite.api.TileItem.OWNERSHIP_OTHER);
+            assertEquals(-1,top(render(cards)));
+            when(entry.item.getOwnership()).thenReturn(net.runelite.api.TileItem.OWNERSHIP_SELF);assertTrue(top(render(cards))>0);
+        }
+    }
+    private static boolean hasColor(BufferedImage image,int color)
+    {for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++)if(image.getRGB(x,y)==color)return true;return false;}
     @Test public void actualProjectionDrawsCardsWithNoItemLayerAndHonoursPictureOnlySwitch()
     {
         LootRuntimeTest.Fixture f=new LootRuntimeTest.Fixture("rule(true){}");GroundLootCards cards=cards(f,1);

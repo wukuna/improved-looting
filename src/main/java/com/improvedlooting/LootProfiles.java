@@ -8,7 +8,7 @@ import javax.inject.*;
 final class LootProfiles
 {
     static final String SAVED="savedLootPresetsV1", UNDO="lootSetupUndoV1";
-    static final String[] BOOLEAN_KEYS={"lootOverlay","lootBeams","lootCompact","lootReveal","priceTiersEnabled","shareMenuIcons","lootNotifications","lootSounds","originalImages","alwaysShowValue","alwaysShowTimer","groupStacks","despawnWarnings","notificationCards","iconDespawnFade","cardBackground","cardBorder","cardShortPrices","cardAutoWidth"};
+    static final String[] BOOLEAN_KEYS={"lootOverlay","lootBeams","lootCompact","lootReveal","priceTiersEnabled","shareMenuIcons","lootNotifications","lootSounds","originalImages","alwaysShowValue","alwaysShowTimer","groupStacks","despawnWarnings","notificationCards","iconDespawnFade","cardBackground","cardBorder","cardShortPrices","cardAutoWidth","keepUntradeablesVisible","onlyShowOwnedDrops"};
     static final Map<String,int[]> NUMBERS=new LinkedHashMap<>();
     static { NUMBERS.put("labelRange",new int[]{1,64});NUMBERS.put("maxLabels",new int[]{10,1000});NUMBERS.put("labelSpacing",new int[]{0,16});NUMBERS.put("labelFontSize",new int[]{0,32});NUMBERS.put("iconSize",new int[]{12,96});NUMBERS.put("despawnSeconds",new int[]{1,120});NUMBERS.put("despawnMinimum",new int[]{0,Integer.MAX_VALUE});NUMBERS.put("alertVolume",new int[]{0,100});NUMBERS.put("soundCooldown",new int[]{0,60}); }
     static final class Setup { int version=1;Map<String,String> settings=new LinkedHashMap<>(); }
@@ -16,7 +16,7 @@ final class LootProfiles
     static final class Library { int version=1;Map<String,Setup> presets=new LinkedHashMap<>(); }
     @Inject ItemIcons icons;
     @Inject LootPreferences preferences;
-    static Set<String> keys(){Set<String> keys=new LinkedHashSet<>(Arrays.asList(BOOLEAN_KEYS));keys.addAll(NUMBERS.keySet());Collections.addAll(keys,"cardTheme","cardBackgroundColor","priceDisplay","timerDisplay","groundStyle","labelOrder","labelAlignment",FilterIcons.KEY,ItemIcons.KEY,PriceTiers.KEY,LootPreferences.KEY);return keys;}
+    static Set<String> keys(){Set<String> keys=new LinkedHashSet<>(Arrays.asList(BOOLEAN_KEYS));keys.addAll(NUMBERS.keySet());Collections.addAll(keys,"cardTheme","cardBackgroundColor","untradeableColor","priceDisplay","timerDisplay","groundStyle","labelOrder","labelAlignment",FilterIcons.KEY,ItemIcons.KEY,PriceTiers.KEY,LootPreferences.KEY);return keys;}
     Setup capture(){Setup s=new Setup();for(String key:keys())s.settings.put(key,icons.configs.getConfiguration(ImprovedLootingConfig.GROUP,key));return s;}
     String export(){return icons.gson.toJson(capture());}
     Setup parse(String raw)
@@ -36,8 +36,8 @@ final class LootProfiles
             if(key.equals("labelOrder"))ImprovedLootingConfig.LabelOrder.valueOf(value);
             if(key.equals("priceDisplay") || key.equals("timerDisplay"))ImprovedLootingConfig.DetailMode.valueOf(value);
             if(key.equals("cardTheme"))ImprovedLootingConfig.CardTheme.valueOf(value);
-            if(key.equals("cardBackgroundColor")){
-                try{Integer.parseInt(value);}catch(NumberFormatException ex){throw new IllegalArgumentException("Invalid card background color",ex);}
+            if(key.equals("cardBackgroundColor") || key.equals("untradeableColor")){
+                try{Integer.parseInt(value);}catch(NumberFormatException ex){throw new IllegalArgumentException("Invalid color: "+key,ex);}
             }
             if(key.equals("groundStyle"))ImprovedLootingConfig.GroundStyle.valueOf(value);
             if(key.equals("labelAlignment"))ImprovedLootingConfig.LabelAlignment.valueOf(value);

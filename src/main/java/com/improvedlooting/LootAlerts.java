@@ -42,7 +42,7 @@ final class LootAlerts
     List<Card> cards() { return new ArrayList<>(cards); }
     void drop(GroundLoot.Entry entry, FilterIcons.Prepared filter)
     {
-        if (entry.display == null || entry.display.isHidden()) return;
+        if (entry.display == null || entry.display.isHidden() || LootDisplayOptions.ownershipHidden(config,entry)) return;
         int tick = client.getTickCount();
         String key = entry.item.getId() + ":" + entry.tile.getLocalLocation() + ":" + entry.facts.getQuantity();
         if (recent.containsKey(key)) return;
@@ -86,6 +86,7 @@ final class LootAlerts
     }
     void despawn(GroundLoot.Entry entry, int seconds)
     {
+        if (LootDisplayOptions.ownershipHidden(config,entry)) return;
         int threshold = clamp(config.despawnSeconds(), 1, 120);
         if (seconds > threshold) entry.warningArmed = true;
         if (!entry.warningArmed || entry.warned || seconds < 0 || seconds > threshold) return;

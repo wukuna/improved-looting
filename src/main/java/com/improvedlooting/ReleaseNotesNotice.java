@@ -19,14 +19,14 @@ import net.runelite.client.events.ProfileChanged;
 @Singleton
 final class ReleaseNotesNotice
 {
-    static final String RELEASE = "2026-10-30-initial-release";
+    static final String RELEASE = "2026-10-30-visibility-panel";
     static final String SEEN_KEY = "releaseNotesShown";
     private static final String[] RECENT = {
+        "Display now offers Only show owned drops, an untradeable minimum-value exception, and an untradeable color picker defaulting to red.",
+        "Native / OSRS sits directly below Cards / Labels on Display; brief tooltips keep the panel compact.",
         "Compact ground cards: tier-colored text, pictures, quantities and optional prices, with Native / OSRS themes, background colors, size and borders.",
         "Hold Alt to reveal hidden labels; Alt-click to hide or show every copy. Set a minimum stack value under Display.",
         "Seven price tiers have independent bold text and loot beam switches, without requiring filter rules.",
-        "Choose text despawn timers, fading item pictures, both or neither.",
-        "Use the nearby browser, visual rules, full setup backups and optional Improved Right-Clicks menu connection."
     };
 
     @Inject private Client client;

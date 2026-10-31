@@ -6,7 +6,7 @@ Make ground loot easier to scan with compact cards or classic labels, Native / O
 
 Open the chest side panel for Display, Style, Rules and imports, and Alerts. Hover controls for brief explanations. Existing filters, assignments, assets and price tiers retain their saved settings.
 
-**Availability:** Install **Improved Looting** from RuneLite's Plugin Hub. The [initial submission #19762](https://github.com/runelite/plugin-hub/pull/19762), including Native / OSRS cards and custom background colors, has merged. As of 30 October 2026, [panel cleanup #19769](https://github.com/runelite/plugin-hub/pull/19769) is awaiting review. This README describes that newer layout, with the theme selector on Display beneath Cards / Labels; the earlier build keeps it under Style.
+**Availability:** Install **Improved Looting** from RuneLite's Plugin Hub. The [initial submission #19762](https://github.com/runelite/plugin-hub/pull/19762), including Native / OSRS cards and custom background colors, has merged. As of 30 October 2026, [update #19769](https://github.com/runelite/plugin-hub/pull/19769) is awaiting review. This README includes its owned-drop filter, untradeable visibility and color controls, and compact panel layout. The theme selector moves to Display beneath Cards / Labels; the earlier build keeps it under Style.
 
 **More plugins:** [Banking, Looting, Right-Clicks, Interface Layout and Chat](https://github.com/wukuna#runelite-plugins).
 
@@ -50,3 +50,7 @@ No automatic pickup, gameplay actions, historical loot tracker, GPU depth protot
 Hold **Alt** to reveal hidden labels. Alt-click a visible label to hide every copy of that item; Alt-click a revealed hidden label to always show it again. These preferences persist in your RuneLite profile and full setup backups. They affect labels and automatic beams, leaving item menu actions and imported rules intact. Normal clicks pass through; an Alt-click used to edit a label is consumed and never picks up an item.
 
 **Display → Minimum value to appear (gp)** hides stacks below their total GE value. Zero disables the minimum. Grouping uses the combined same-tile stack value when enabled; manual Alt-click show overrides the minimum and rule hiding. Nearby loot includes hidden items, and its Filter action clears the manual label override.
+
+**Keep untradeables visible** starts enabled and exempts untradeable items from the minimum, including drops with no GE value. **Untradeable color**, beside it on Display, defaults to red and can be changed with the picker. It colors the name and card accent in either theme and in Labels mode; existing non-white rule colors take priority. Price-tier animations do not replace the untradeable color. Explicit hide rules and Alt-click hiding still work.
+
+**Only show owned drops** starts off. Enable it under Display > Visibility to show your drops and shared Group Ironman loot, based on RuneLite's ownership flags. Public/unowned and other-player drops are hidden, including their beams, notification cards, sounds and despawn warnings. Alt can temporarily reveal hidden ground labels; it does not reveal beams or trigger alerts. An explicit Show override does not bypass this ownership filter. Grouped quantities exclude drops hidden by ownership. All three settings are included in full backups and presets.

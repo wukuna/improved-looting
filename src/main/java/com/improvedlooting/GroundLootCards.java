@@ -81,9 +81,9 @@ final class GroundLootCards
                 if(Math.abs(box.x+width/2-anchor.getX())>10 || Math.abs(box.y+box.height-anchor.getY())>12){g.setColor(new Color(180,190,200,90));g.drawLine(box.x+width/2,box.y+box.height,anchor.getX(),anchor.getY());}
                 for(int i=0;i<count;i++){
                     GroundLoot.Entry e=entries.get(i);Rectangle row=new Rectangle(box.x,box.y+i*pitch,width,height);long value=PriceTiers.value(e.facts.getGePrice(),e.renderQuantity);
-                    Color filter=e.display.getTextColor();PriceTiers.Tier tier=selected.tiers[PriceTiers.index(selected,value)];g.setFont(tier.bold?bold:plain);
-                    Paint rail=filter.equals(Color.WHITE)?new Color(tier.color):filter;
-                    if(config.priceTiersEnabled()&&setup!=null){Paint effect=LootTextPaint.paint(tier,selected.seconds,System.nanoTime(),row.x,Math.max(80,width));if(effect!=null)rail=effect;}
+                    PriceTiers.Tier tier=selected.tiers[PriceTiers.index(selected,value)];g.setFont(tier.bold?bold:plain);
+                    Paint rail=LootDisplayOptions.color(config,e,new Color(tier.color));
+                    if(LootDisplayOptions.tierEffects(config,e)&&setup!=null){Paint effect=LootTextPaint.paint(tier,selected.seconds,System.nanoTime(),row.x,Math.max(80,width));if(effect!=null)rail=effect;}
                     double fraction=config.iconDespawnFade()?LootCardPainter.remaining(e.renderSpawnTick,e.renderDespawn,now):1;
                     LootCardPainter.row(g,row,rail,image(e,size,fraction),config.lootCompact()?"":e.facts.getName(),e.renderQuantity,LootDisplayOptions.price(config,e),loot.labelHidden(e),config.cardBackground(),config.cardBorder(),config.cardOpacity(),config.cardShortPrices(),seconds(e),theme,backgroundColor);
                     if(input!=null)input.add(row,e,loot.labelHidden(e));

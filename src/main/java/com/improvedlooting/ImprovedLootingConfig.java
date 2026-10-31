@@ -50,6 +50,12 @@ public interface ImprovedLootingConfig extends Config
     default DetailMode timerDisplay(){return alwaysShowTimer()?DetailMode.ALWAYS:DetailMode.HIDDEN;}
     @ConfigItem(keyName="minimumLabelValue",name="Minimum value to appear",description="Configured in the side panel",hidden=true)
     default int minimumLabelValue(){return 0;}
+    @ConfigItem(keyName="keepUntradeablesVisible",name="Keep untradeables visible",description="Configured in the side panel",hidden=true)
+    default boolean keepUntradeablesVisible(){return true;}
+    @ConfigItem(keyName="untradeableColor",name="Untradeable color",description="Configured in the side panel",hidden=true)
+    default Color untradeableColor(){return new Color(0xff5555);}
+    @ConfigItem(keyName="onlyShowOwnedDrops",name="Only show owned drops",description="Configured in the side panel",hidden=true)
+    default boolean onlyShowOwnedDrops(){return false;}
     @ConfigItem(keyName="groundStyle",name="Ground style",description="Configured in the side panel",hidden=true)
     default GroundStyle groundStyle() { return GroundStyle.CARDS; }
     @ConfigItem(keyName="iconDespawnFade",name="Despawn picture fade",description="Configured in the side panel",hidden=true)

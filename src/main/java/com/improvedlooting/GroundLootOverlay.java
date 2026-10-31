@@ -80,9 +80,9 @@ final class GroundLootOverlay extends Overlay
                 if (display.getBorderColor() != null) { g.setColor(display.getBorderColor()); g.drawRect(x, y, width, height); }
                 if (image != null) g.drawImage(image, x + 2, y + (height - ih) / 2, iw, ih, null);
                 if(input!=null)input.add(new Rectangle(x,y,width,height),entry,loot.labelHidden(entry));
-                Color color=tier!=null && display.getTextColor().equals(Color.WHITE)?new Color(tier.color):display.getTextColor();
+                Color color=LootDisplayOptions.color(config,entry,tier==null?Color.WHITE:new Color(tier.color));
                 TextComponent label = new TextComponent(); label.setText(text); label.setColor(loot.labelHidden(entry) ? Color.GRAY : color);
-                if(tier!=null && config.priceTiersEnabled() && !loot.labelHidden(entry)) {
+                if(tier!=null && LootDisplayOptions.tierEffects(config,entry) && !loot.labelHidden(entry)) {
                     label.setForegroundPaint(LootTextPaint.paint(tier,tierSetup.setup.seconds,animationTime,x+iconWidth+3,metrics.stringWidth(text)));
                 }
                 if (display.getTextAccent() != null) label.setTextAccent(display.getTextAccent());
