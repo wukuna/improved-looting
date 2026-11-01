@@ -59,7 +59,51 @@ final class GroundLoot
         Entry(Tile tile, TileItem item) { this.tile = tile; this.item = item; }
     }
     Collection<Entry> entries() { return ordered; }
-    int menuRank(Tile tile, int id, int fallback) { return menuRanks.computeIfAbsent(tile,t -> LootPileOrder.ranks(t,filters,config)).getOrDefault(id,fallback); }
+    private Map<Integer,Integer> ranks(Tile tile) { return menuRanks.computeIfAbsent(tile,t -> LootPileOrder.ranks(t,filters,config)); }
+    int menuRank(Tile tile, int id, int fallback) { return ranks(tile).getOrDefault(id,fallback); }
+    // A menu entry cannot distinguish duplicate copies. Keep it if any copy is
+    // visible or unresolved, so filtering never strands a visible drop.
+    private boolean menuHidden(Tile tile, int id) {
+        if(tile==null || tile.getGroundItems()==null)return false;
+        boolean found=false;
+        for(TileItem item:tile.getGroundItems())if(item.getId()==id) {
+            Entry e=entries.get(item);
+            if(e==null || e.facts==null || e.display==null || !labelHidden(e))return false;
+            found=true;
+        }
+        return found;
+    }
+    private void updateMenu(MenuOpened event) {
+        if(client.getGameState()!=GameState.LOGGED_IN)return;
+        MenuEntry[] original=client.getMenu().getMenuEntries();
+        // Never change selected-item or selected-spell targeting menus.
+        for(MenuEntry e:original)if(e.getType()==MenuAction.WIDGET_TARGET_ON_GROUND_ITEM
+            || e.getType()==MenuAction.ITEM_USE_ON_GROUND_ITEM)return;
+        if(config.hideHiddenMenuItems() && !reveal()) {
+            List<MenuEntry> visible=new ArrayList<>();
+            for(MenuEntry e:original) {
+                boolean hide=false;
+                if(e.onClick()==null && e.getSubMenu()==null && !e.isForceLeftClick() && ordinaryGroundAction(e.getType())) {
+                    WorldView view=client.getWorldView(e.getWorldViewId());
+                    Tile[][][] tiles=view==null || view.getScene()==null?null:view.getScene().getTiles();
+                    int plane=view==null?-1:view.getPlane(),x=e.getParam0(),y=e.getParam1();
+                    if(tiles!=null && plane>=0 && plane<tiles.length && tiles[plane]!=null && x>=0 && x<tiles[plane].length
+                        && tiles[plane][x]!=null && y>=0 && y<tiles[plane][x].length)hide=menuHidden(tiles[plane][x][y],e.getIdentifier());
+                }
+                if(!hide)visible.add(e);
+            }
+            if(visible.size()!=original.length) {
+                MenuEntry[] next=visible.toArray(new MenuEntry[0]);client.getMenu().setMenuEntries(next);
+                if(event!=null)event.setMenuEntries(next);
+            }
+        }
+        LootPileOrder.opened(client,config,event,this::ranks);
+    }
+    private static boolean ordinaryGroundAction(MenuAction type) {
+        return type==MenuAction.GROUND_ITEM_FIRST_OPTION || type==MenuAction.GROUND_ITEM_SECOND_OPTION
+            || type==MenuAction.GROUND_ITEM_THIRD_OPTION || type==MenuAction.GROUND_ITEM_FOURTH_OPTION
+            || type==MenuAction.GROUND_ITEM_FIFTH_OPTION || type==MenuAction.EXAMINE_ITEM_GROUND;
+    }
     List<LootRow> rows() { return rows; }
     void select(long key) { selected = key; selectedUntil = client.getTickCount() + 17; }
     boolean selected(Entry e) { return e.key == selected && client.getTickCount() <= selectedUntil; }
@@ -163,7 +207,8 @@ final class GroundLoot
         Entry entry = new Entry(tile, item); entry.key = ++sequence; entry.spawnTick = client.getTickCount(); entry.pendingDrop = alert; entries.put(item, entry); update(entry, false);
     }
     @Subscribe public void onItemSpawned(ItemSpawned e) { add(e.getTile(), e.getItem(), true); }
-    @Subscribe(priority=1) public void onMenuOpened(MenuOpened e) { menuRanks.clear(); LootPileOrder.opened(client, filters, config, e); }
+    @Subscribe(priority=1) public void onMenuOpened(MenuOpened e) { menuRanks.clear(); updateMenu(e); }
+    @Subscribe(priority=-10) public void onPostMenuSort(PostMenuSort e) { if(!client.isMenuOpen())updateMenu(null); }
     @Subscribe public void onItemDespawned(ItemDespawned e) { menuRanks.remove(e.getTile()); Entry old = entries.remove(e.getItem()); if (old != null) beamOff(old); }
     @Subscribe public void onItemQuantityChanged(ItemQuantityChanged e) { menuRanks.remove(e.getTile()); Entry old = entries.get(e.getItem()); if (old != null) {old.facts=null;update(old, false);} }
     @Subscribe public void onGameStateChanged(GameStateChanged e) { if (e.getGameState() != GameState.LOGGED_IN) clear(); }

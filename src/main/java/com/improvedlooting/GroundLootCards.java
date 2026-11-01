@@ -80,12 +80,16 @@ final class GroundLootCards
                 if(hover){expanded=tile;expandedBounds=box.union(collapsed);}
                 if(Math.abs(box.x+width/2-anchor.getX())>10 || Math.abs(box.y+box.height-anchor.getY())>12){g.setColor(new Color(180,190,200,90));g.drawLine(box.x+width/2,box.y+box.height,anchor.getX(),anchor.getY());}
                 for(int i=0;i<count;i++){
-                    GroundLoot.Entry e=entries.get(i);Rectangle row=new Rectangle(box.x,box.y+i*pitch,width,height);long value=PriceTiers.value(e.facts.getGePrice(),e.renderQuantity);
+                    GroundLoot.Entry e=entries.get(i);long value=PriceTiers.value(e.facts.getGePrice(),e.renderQuantity);
                     PriceTiers.Tier tier=selected.tiers[PriceTiers.index(selected,value)];g.setFont(tier.bold?bold:plain);
+                    int rowWidth=width;
+                    if(config.cardIndividualWidth() && (config.cardAutoWidth() || config.lootCompact()))rowWidth=Math.min(width,Math.max(config.lootCompact()?48:120,
+                        LootCardPainter.width(g.getFontMetrics(),size,config.lootCompact()?"":e.facts.getName(),e.renderQuantity,LootDisplayOptions.price(config,e),config.cardShortPrices(),seconds(e))));
+                    Rectangle row=rowBounds(box,i*pitch,rowWidth,height,config.labelAlignment());
                     Paint rail=LootDisplayOptions.color(config,e,new Color(tier.color));
                     if(LootDisplayOptions.tierEffects(config,e)&&setup!=null){Paint effect=LootTextPaint.paint(tier,selected.seconds,System.nanoTime(),row.x,Math.max(80,width));if(effect!=null)rail=effect;}
                     double fraction=config.iconDespawnFade()?LootCardPainter.remaining(e.renderSpawnTick,e.renderDespawn,now):1;
-                    LootCardPainter.row(g,row,rail,image(e,size,fraction),config.lootCompact()?"":e.facts.getName(),e.renderQuantity,LootDisplayOptions.price(config,e),loot.labelHidden(e),config.cardBackground(),config.cardBorder(),config.cardOpacity(),config.cardShortPrices(),seconds(e),theme,backgroundColor);
+                    LootCardPainter.row(g,row,rail,image(e,size,fraction),config.lootCompact()?"":e.facts.getName(),e.renderQuantity,LootDisplayOptions.price(config,e),loot.labelHidden(e),config.cardBackground(),config.cardBorder(),config.cardOpacity(),config.cardShortPrices(),seconds(e),theme,backgroundColor,config.railDespawnTimer()?LootCardPainter.remaining(e.renderSpawnTick,e.renderDespawn,now):1);
                     if(input!=null)input.add(row,e,loot.labelHidden(e));
                 }
                 g.setFont(plain);
@@ -94,6 +98,10 @@ final class GroundLootCards
             }
             if(overflow>0){String text=overflow+" more items · Nearby loot";int summaryWidth=Math.min(viewport.width-8,g.getFontMetrics().stringWidth(text)+16);Rectangle summary=LootCardPainter.place(viewport.x+summaryWidth/2+4,viewport.y+height+4,summaryWidth,height,viewport,occupied);if(summary!=null)footer(g,summary,text);}
         }finally{g.dispose();}
+    }
+    static Rectangle rowBounds(Rectangle pile,int y,int width,int height,ImprovedLootingConfig.LabelAlignment alignment) {
+        int offset=alignment==ImprovedLootingConfig.LabelAlignment.LEFT?0:alignment==ImprovedLootingConfig.LabelAlignment.RIGHT?pile.width-width:(pile.width-width)/2;
+        return new Rectangle(pile.x+offset,pile.y+y,width,height);
     }
     private int seconds(GroundLoot.Entry entry)
     {

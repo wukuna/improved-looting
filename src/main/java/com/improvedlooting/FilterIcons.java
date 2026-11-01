@@ -12,6 +12,7 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.ItemMapping;
 import com.improvedlooting.rs2f.LootFilter;
 import com.improvedlooting.rs2f.model.*;
 @Singleton
@@ -100,10 +101,17 @@ class FilterIcons {
  ItemFacts facts(Tile tile,TileItem item) {
   ItemComposition c=items.getItemComposition(item.getId());
   ItemComposition note=c.getLinkedNoteId()<0 ? null : items.getItemComposition(c.getLinkedNoteId());
+  // Fresh ensouled drops have a temporary untradeable ID. Restrict this
+  // conversion to RuneLite's explicit head mappings, not every repair/value mapping.
+  ItemComposition market=c;
+  Collection<ItemMapping> mappings=ItemMapping.map(item.getId());
+  if(mappings!=null)for(ItemMapping mapping:mappings)if(mapping.name().startsWith("ITEM_ENSOULED_")) {
+   market=items.getItemComposition(mapping.getTradeableItem());break;
+  }
   long price=item.getId()==995 ? 1 : item.getId()==13204 ? 1000 : items.getItemPrice(item.getId());
   return ItemFacts.builder().id(item.getId()).name(c.getName()).quantity(item.getQuantity()).ownership(item.getOwnership())
    .accountType(client.getVarbitValue(VarbitID.IRONMAN)).gePrice(price).haPrice(c.getHaPrice()).stackable(c.isStackable()).noted(c.getNote()!=-1)
-   .tradeable(c.isTradeable() || note!=null && note.isTradeable()).geTradeable(c.isGeTradeable() || note!=null && note.isGeTradeable())
+   .tradeable(market.isTradeable() || note!=null && note.isTradeable()).geTradeable(market.isGeTradeable() || note!=null && note.isGeTradeable())
    .worldPoint(WorldPoint.fromLocalInstance(client,tile.getLocalLocation())).build();
  }
  ItemIcons.Assignment find(MenuEntry entry) {

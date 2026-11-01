@@ -8,7 +8,7 @@ import javax.inject.*;
 final class LootProfiles
 {
     static final String SAVED="savedLootPresetsV1", UNDO="lootSetupUndoV1";
-    static final String[] BOOLEAN_KEYS={"lootOverlay","lootBeams","lootCompact","lootReveal","priceTiersEnabled","shareMenuIcons","lootNotifications","lootSounds","originalImages","alwaysShowValue","alwaysShowTimer","groupStacks","despawnWarnings","notificationCards","iconDespawnFade","cardBackground","cardBorder","cardShortPrices","cardAutoWidth","keepUntradeablesVisible","onlyShowOwnedDrops","prioritizeLoot"};
+    static final String[] BOOLEAN_KEYS={"lootOverlay","lootBeams","lootCompact","lootReveal","priceTiersEnabled","shareMenuIcons","lootNotifications","lootSounds","originalImages","alwaysShowValue","alwaysShowTimer","groupStacks","despawnWarnings","notificationCards","iconDespawnFade","cardBackground","cardBorder","cardShortPrices","cardAutoWidth","keepUntradeablesVisible","onlyShowOwnedDrops","prioritizeLoot","hideHiddenMenuItems","cardIndividualWidth","railDespawnTimer"};
     static final Map<String,int[]> NUMBERS=new LinkedHashMap<>();
     static { NUMBERS.put("labelRange",new int[]{1,64});NUMBERS.put("maxLabels",new int[]{10,1000});NUMBERS.put("labelSpacing",new int[]{0,16});NUMBERS.put("labelFontSize",new int[]{0,32});NUMBERS.put("iconSize",new int[]{12,96});NUMBERS.put("despawnSeconds",new int[]{1,120});NUMBERS.put("despawnMinimum",new int[]{0,Integer.MAX_VALUE});NUMBERS.put("alertVolume",new int[]{0,100});NUMBERS.put("soundCooldown",new int[]{0,60}); }
     static final class Setup { int version=1;Map<String,String> settings=new LinkedHashMap<>(); }

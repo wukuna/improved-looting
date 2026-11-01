@@ -26,8 +26,14 @@ public interface ImprovedLootingConfig extends Config
     default boolean shareMenuIcons() { return false; }
 
     enum LabelOrder { VALUE, DISTANCE, NAME, TIME }
-    @ConfigItem(keyName="prioritizeLoot",name="Prioritize valuable loot",description="Normal loot by value, then bones/ashes, then untradeables; labels and opened Take menus",hidden=true)
+    @ConfigItem(keyName="prioritizeLoot",name="Prioritize valuable loot",description="Normal loot by value, then bones/ashes, then untradeables; labels and left/right-click Take order",hidden=true)
     default boolean prioritizeLoot() { return true; }
+    @ConfigItem(keyName="hideHiddenMenuItems",name="Hide filtered items in menus",description="Remove hidden items from ordinary ground menus; hold Alt to reveal",hidden=true)
+    default boolean hideHiddenMenuItems() { return false; }
+    @ConfigItem(keyName="cardIndividualWidth",name="Fit each card separately",description="Use each item's line width instead of the widest card in its pile",hidden=true)
+    default boolean cardIndividualWidth() { return false; }
+    @ConfigItem(keyName="railDespawnTimer",name="Color strip timer",description="Drain the left color strip as a drop expires",hidden=true)
+    default boolean railDespawnTimer() { return false; }
     enum LabelAlignment { CENTER, LEFT, RIGHT }
     enum GroundStyle { CARDS, LABELS }
     enum CardTheme {

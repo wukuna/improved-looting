@@ -48,16 +48,18 @@ final class ImprovedLootingPanel extends PluginPanel
         hint(timers,"Hidden: no text timer. Follow rules: use your filter. Always: show known despawn times.");
         JCheckBox shortPrices=toggle(display,"Short prices (8.3k gp)","cardShortPrices",config::cardShortPrices);
         hint(toggle(display,"Fade picture as loot expires","iconDespawnFade",config::iconDespawnFade),"Fade pictures when the despawn time is known. Independent of the text timer.");
+        hint(toggle(display,"Color strip despawn timer","railDespawnTimer",config::railDespawnTimer),"Drain the left color strip from top to bottom. Cards only; independent of the picture fade and text timer.");
         section(display,"Visibility");
         hint(toggle(display,"Only show owned drops","onlyShowOwnedDrops",config::onlyShowOwnedDrops),"Show your drops and shared Group Ironman loot, using the game's ownership flag. Public/unowned and other-player drops are hidden, including beams and alerts. Hold Alt to reveal hidden labels temporarily.");
         hint(number(display,"Minimum value to appear (gp)","minimumLabelValue",config::minimumLabelValue,0,Integer.MAX_VALUE),"Minimum GE value for the visible stack. 0 shows all values; manually shown items bypass the minimum.");
         hint(toggle(display,"Keep untradeables visible","keepUntradeablesVisible",config::keepUntradeablesVisible),"Untradeable items bypass the minimum value, including items with no GE price. Your ownership filter and explicit hide rules still apply.");
         untradeableColor(display,config);
+        hint(toggle(display,"Hide filtered items in menus","hideHiddenMenuItems",config::hideHiddenMenuItems),"Remove hidden items' ordinary ground actions, including Take and Examine. Hold Alt before opening to reveal. Item/spell targeting and other plugins' custom actions are preserved.");
         JLabel shortcuts=help("Alt: reveal hidden<br>Alt-click: hide/show item");display.add(shortcuts);
-        hint(shortcuts,"Alt-click toggles every copy of that item. Showing a hidden item also bypasses the minimum value. Item menu actions are unchanged.");
+        hint(shortcuts,"Alt-click toggles every copy of that item. Showing a hidden item also bypasses the minimum value. The optional menu filter also hides ordinary ground actions; Alt reveals them.");
         button(display,"Nearby loot / hidden labels",()->{if(browser!=null)browser.close();browser=new LootBrowser(loot,icons,thread,preferences);browser.open(this);});
         toggle(display,"Group matching stacks on a tile","groupStacks",config::groupStacks);
-        hint(toggle(display,"Prioritize valuable loot","prioritizeLoot",config::prioritizeLoot),"Top to bottom: normal loot by total GE value, bones/ashes, then untradeables. Applies to cards, labels and opened Take menus. Overrides Item order and filter menu sorting while enabled; normal left-click behavior is unchanged.");
+        hint(toggle(display,"Prioritize valuable loot","prioritizeLoot",config::prioritizeLoot),"Top to bottom: normal loot by total GE value, bones/ashes, then untradeables. Applies to cards, labels and left/right-click Take order. Overrides Item order and filter menu sorting while enabled. Other actions and item/spell targeting retain their priority.");
         hint(choice(display,"Item order","labelOrder",ImprovedLootingConfig.LabelOrder.values(),config::labelOrder),"Used when Prioritize valuable loot is off.");
         choice(display,"Alignment at the pile","labelAlignment",ImprovedLootingConfig.LabelAlignment.values(),config::labelAlignment);
         number(display,"Range (tiles)","labelRange",config::labelRange,1,64);
@@ -74,6 +76,8 @@ final class ImprovedLootingPanel extends PluginPanel
         toggle(cardStyle,"Thin card border","cardBorder",config::cardBorder);
         JSpinner opacity=number(cardStyle,"Background opacity (%)","cardOpacity",config::cardOpacity,0,100);
         JCheckBox autoWidth=toggle(cardStyle,"Fit full item names","cardAutoWidth",config::cardAutoWidth);
+        JCheckBox individualWidth=toggle(cardStyle,"Fit each card separately","cardIndividualWidth",config::cardIndividualWidth);
+        hint(individualWidth,"When fitting names, size each card to its own contents. Off aligns every card to the longest line in its pile.");
         JSpinner manualWidth=number(cardStyle,"Manual width (pixels)","cardWidth",config::cardWidth,120,2048);
         hint(autoWidth,"Fit the full line inside the game view. Pictures-only cards always fit their contents.");
         hint(number(cardStyle,"Height (0: fit text)","cardHeight",config::cardHeight,0,96),"Minimum card height; pictures scale with it. 0 fits the text.");
@@ -93,6 +97,7 @@ final class ImprovedLootingPanel extends PluginPanel
             manualWidth.setEnabled(cards && !config.cardAutoWidth() && !config.lootCompact());
             prices.setEnabled(!config.lootCompact());timers.setEnabled(!config.lootCompact());
             shortPrices.setEnabled(!config.lootCompact() && config.priceDisplay()!=ImprovedLootingConfig.DetailMode.HIDDEN);
+            individualWidth.setEnabled(cards && (config.cardAutoWidth() || config.lootCompact()));
             autoWidth.setEnabled(cards && !config.lootCompact());opacity.setEnabled(cards && config.cardBackground());
             backgroundColor.setEnabled(cards && config.cardBackground());resetColor.setEnabled(cards && config.cardBackground() && config.cardBackgroundColor()!=null);
         });

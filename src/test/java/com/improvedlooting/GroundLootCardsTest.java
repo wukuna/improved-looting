@@ -113,6 +113,20 @@ public class GroundLootCardsTest
         assertEquals(Color.CYAN.getRGB(),manual.getRGB(larger.x+10+40,larger.y+40));
         when(f.loot.config.cardWidth()).thenReturn(2048);assertEquals(794,bounds(render(cards)).width);
     }
+    @Test public void individualWidthsAffectActualRowsAndManualWidthStaysFixed() throws Exception
+    {
+        LootRuntimeTest.Fixture f=new LootRuntimeTest.Fixture("rule(true){}");GroundLootCards cards=cards(f,2);
+        int n=0;for(GroundLoot.Entry e:f.loot.entries())e.facts=com.improvedlooting.rs2f.model.ItemFacts.builder().id(e.item.getId()).name(n++==0?"Coins":"Super extended antifire mix(2)").quantity(2).gePrice(10000).tradeable(true).build();
+        when(f.loot.config.cardAutoWidth()).thenReturn(true);BufferedImage shared=render(cards);int y=top(shared)+13;
+        int first=span(shared,y),second=span(shared,y+28);assertEquals(first,second);
+        when(f.loot.config.cardIndividualWidth()).thenReturn(true);BufferedImage individual=render(cards);
+        assertTrue(span(individual,y)<span(individual,y+28));
+        javax.imageio.ImageIO.write(individual,"png",new java.io.File("build/individual-card-widths-preview.png"));
+        when(f.loot.config.cardAutoWidth()).thenReturn(false);BufferedImage fixed=render(cards);assertEquals(span(fixed,y),span(fixed,y+28));
+    }
+    private static int span(BufferedImage image,int y) {
+        int min=800,max=-1;for(int x=0;x<800;x++)if((image.getRGB(x,y)>>>24)>50){min=Math.min(min,x);max=x;}return max-min+1;
+    }
     private static java.awt.Rectangle bounds(BufferedImage image)
     {
         int x1=image.getWidth(),y1=image.getHeight(),x2=-1,y2=-1;

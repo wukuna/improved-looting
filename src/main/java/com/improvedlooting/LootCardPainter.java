@@ -77,6 +77,10 @@ final class LootCardPainter
     }
     static void row(Graphics2D original,Rectangle bounds,Paint rail,BufferedImage icon,String name,long quantity,long price,boolean hidden,boolean background,boolean border,int opacity,boolean shortPrices,int seconds,CardTheme theme,Color backgroundColor)
     {
+        row(original,bounds,rail,icon,name,quantity,price,hidden,background,border,opacity,shortPrices,seconds,theme,backgroundColor,1);
+    }
+    static void row(Graphics2D original,Rectangle bounds,Paint rail,BufferedImage icon,String name,long quantity,long price,boolean hidden,boolean background,boolean border,int opacity,boolean shortPrices,int seconds,CardTheme theme,Color backgroundColor,double railRemaining)
+    {
         Graphics2D g=(Graphics2D)original.create();
         try{
             g.clip(bounds);
@@ -84,7 +88,9 @@ final class LootCardPainter
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,osrs?RenderingHints.VALUE_ANTIALIAS_OFF:RenderingHints.VALUE_ANTIALIAS_ON);g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,osrs?RenderingHints.VALUE_TEXT_ANTIALIAS_OFF:RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             surface(g,bounds,background,border,opacity,theme,backgroundColor);
             Shape clip=g.getClip();if(!osrs)g.clip(new RoundRectangle2D.Double(bounds.x,bounds.y,bounds.width,bounds.height,7,7));g.setPaint(hidden?Color.GRAY:rail);
-            int inset=osrs&&border?2:0;g.fillRect(bounds.x+inset,bounds.y+inset,osrs?3:4,bounds.height-inset*2);g.setClip(clip);
+            int inset=osrs&&border?2:0,railHeight=bounds.height-inset*2;
+            int drained=(int)Math.round(railHeight*(1-Math.max(0,Math.min(1,railRemaining))));
+            g.fillRect(bounds.x+inset,bounds.y+inset+drained,osrs?3:4,railHeight-drained);g.setClip(clip);
             int size=icon==null?18:icon.getWidth(),left=bounds.x+10;
             if(icon!=null)g.drawImage(icon,left,bounds.y+(bounds.height-size)/2,null);
             FontMetrics metrics=g.getFontMetrics();String amount=details(price,shortPrices,seconds);int amountX=bounds.x+bounds.width-9-metrics.stringWidth(amount);

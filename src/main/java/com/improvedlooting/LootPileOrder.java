@@ -4,6 +4,7 @@ import com.improvedlooting.rs2f.model.ItemFacts;
 import java.util.*;
 import net.runelite.api.*;
 import net.runelite.api.events.MenuOpened;
+import java.util.function.Function;
 import net.runelite.client.util.Text;
 
 /** Presentation only: never changes the scene's item deque or invokes an action. */
@@ -57,7 +58,7 @@ final class LootPileOrder {
 
     private static long sum(long a, long b) { return a > Long.MAX_VALUE - b ? Long.MAX_VALUE : a + b; }
 
-    static void opened(Client client, FilterIcons filters, ImprovedLootingConfig config, MenuOpened event) {
+    static void opened(Client client, ImprovedLootingConfig config, MenuOpened event, Function<Tile, Map<Integer,Integer>> rankLookup) {
         if (!config.prioritizeLoot() || client.getGameState() != GameState.LOGGED_IN) return;
         MenuEntry[] original = client.getMenu().getMenuEntries(), sorted = original.clone();
         Map<List<Integer>, List<Integer>> piles = new LinkedHashMap<>();
@@ -76,14 +77,14 @@ final class LootPileOrder {
             int p = view.getPlane(), x = first.getParam0(), y = first.getParam1();
             if (tiles == null || p < 0 || p >= tiles.length || tiles[p] == null || x < 0 || x >= tiles[p].length
                 || tiles[p][x] == null || y < 0 || y >= tiles[p][x].length) continue;
-            Map<Integer,Integer> ranks = ranks(tiles[p][x][y], filters, config);
+            Map<Integer,Integer> ranks = rankLookup.apply(tiles[p][x][y]);
             List<Integer> known = new ArrayList<>();
             List<MenuEntry> entries = new ArrayList<>();
             for (int slot : slots) if (ranks.containsKey(original[slot].getIdentifier())) { known.add(slot); entries.add(original[slot]); }
             entries.sort(Comparator.comparingInt(e -> ranks.get(e.getIdentifier())));
             for (int i = 0; i < known.size(); i++) sorted[known.get(i)] = entries.get(i);
         }
-        if (!Arrays.equals(original, sorted)) { client.getMenu().setMenuEntries(sorted); event.setMenuEntries(sorted); }
+        if (!Arrays.equals(original, sorted)) { client.getMenu().setMenuEntries(sorted); if (event != null) event.setMenuEntries(sorted); }
     }
 
     private static boolean take(MenuEntry entry) {
