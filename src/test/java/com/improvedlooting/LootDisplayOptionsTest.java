@@ -10,6 +10,34 @@ import static org.mockito.Mockito.*;
 
 public class LootDisplayOptionsTest
 {
+    @Test public void overrideRefreshKeepsPilesFactsAndLifetimeAndRestoresOriginalRuleColors()
+    {
+        LootRuntimeTest.Fixture f=new LootRuntimeTest.Fixture("rule(true){textColor=\"#12ab34\";}");
+        f.loot.preferences=preferences(new HashMap<>());f.items.add(f.item(1,1,200));f.items.add(f.item(2,1,200));f.tick(100);
+        GroundLoot.Entry e=f.loot.entries().stream().filter(drop->drop.item.getId()==1).findFirst().get();
+        Object facts=e.facts;clearInvocations(f.loot.filters);
+        f.loot.preferences.set(1,LootPreferences.Action.HIGHLIGHT,"Useful");f.loot.refreshOverrides();
+        assertEquals(java.awt.Color.YELLOW,e.display.getTextColor());assertTrue(e.display.isShowLootbeam());
+        f.loot.preferences.labelHidden(1,true);f.loot.refreshOverrides();assertTrue(f.loot.labelHidden(e));
+        f.loot.preferences.labelHidden(1,false);f.loot.refreshOverrides();assertFalse(f.loot.labelHidden(e));
+        assertEquals(java.awt.Color.YELLOW,e.display.getTextColor());
+        f.loot.preferences.set(1,LootPreferences.Action.FILTER,"Useful");f.loot.refreshOverrides();
+        assertEquals(new java.awt.Color(0x12ab34),e.display.getTextColor());assertFalse(e.display.isShowLootbeam());
+        assertEquals(2,f.loot.entries().size());assertSame(facts,e.facts);assertEquals(100,e.renderSpawnTick);
+        verifyNoInteractions(f.loot.filters);
+    }
+    @Test public void explicitHighlightAndRuleColorsWinOverEveryTierEffect()
+    {
+        LootRuntimeTest.Fixture f=new LootRuntimeTest.Fixture("rule(true){}");
+        f.loot.preferences=preferences(new HashMap<>());f.loot.preferences.set(1,LootPreferences.Action.HIGHLIGHT,"Keep");
+        when(f.loot.config.priceTiersEnabled()).thenReturn(true);f.items.add(f.item(1,1,200));f.tick(100);
+        GroundLoot.Entry e=f.loot.entries().iterator().next();
+        assertEquals(java.awt.Color.YELLOW,LootDisplayOptions.color(f.loot.config,e,java.awt.Color.RED));
+        assertFalse(LootDisplayOptions.tierEffects(f.loot.config,e));
+        assertEquals(java.awt.Color.YELLOW,GroundLoot.beamColor(e.display,10000,PriceTiers.defaults()));
+        e.display=e.display.toBuilder().textColor(java.awt.Color.CYAN).build();assertFalse(LootDisplayOptions.tierEffects(f.loot.config,e));
+        e.display=e.display.toBuilder().textColor(java.awt.Color.WHITE).build();assertTrue(LootDisplayOptions.tierEffects(f.loot.config,e));
+    }
     @Test public void pricesAndTimersUseExplicitPrecedenceAndPicturesOnlySuppressesText()
     {
         LootRuntimeTest.Fixture f=new LootRuntimeTest.Fixture("rule(true){showValue=true;showDespawn=true;}");

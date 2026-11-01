@@ -27,8 +27,12 @@ final class GroundLootOverlay extends Overlay
     @Override public Dimension render(Graphics2D original)
     {
         if(input!=null)input.beginFrame();
-        if (!loot.groundAllowed()) return null;
-        if (config.groundStyle() == ImprovedLootingConfig.GroundStyle.CARDS) { groundCards.render(original);if(input!=null && !client.isMenuOpen())input.finishFrame();return null; }
+        if (!loot.groundAllowed()) { if(input!=null)input.reset();return null; }
+        if (config.groundStyle() == ImprovedLootingConfig.GroundStyle.CARDS) {
+            try { groundCards.render(original); }
+            finally { finishInput(); }
+            return null;
+        }
         Graphics2D g = (Graphics2D)original.create();
         PriceTiers.Ready tierSetup=tiers!=null?tiers.snapshot():null;
         long animationTime=System.nanoTime();
@@ -99,8 +103,9 @@ final class GroundLootOverlay extends Overlay
                 if (display.getTextAccentColor() != null) label.setAccentColor(display.getTextAccentColor());
                 label.setPosition(new Point(x + iconWidth + 3, y + (height - metrics.getHeight()) / 2 + metrics.getAscent())); label.render(g);
             }
-        } finally { g.dispose();if(input!=null && !client.isMenuOpen())input.finishFrame(); }
+        } finally { g.dispose();finishInput(); }
         return null;
     }
+    private void finishInput(){if(input!=null){if(client.isMenuOpen())input.reset();else input.finishFrame();}}
     private java.awt.image.BufferedImage lootItemImage(GroundLoot.Entry entry) { return loot.icons.items.getImage(entry.item.getId()); }
 }

@@ -6,7 +6,7 @@ Make ground loot easier to scan with compact cards or classic labels, Native / O
 
 Open the chest side panel for Display, Style, Rules and imports, and Alerts. Hover controls for brief explanations. Existing filters, assignments, assets and price tiers retain their saved settings.
 
-**Availability:** Install **Improved Looting** from RuneLite's Plugin Hub. The pile-order update [#19841](https://github.com/runelite/plugin-hub/pull/19841) merged on 31 October 2026. This source also contains the next update: consistent left-click priority, ensouled-head handling, per-card widths, strip timers and optional menu hiding; these additions require the matching updated build.
+**Availability:** Install **Improved Looting** from RuneLite's Plugin Hub. The left-click priority, ensouled-head, per-card width, strip timer and optional menu-hiding update [#19873](https://github.com/runelite/plugin-hub/pull/19873) merged on 1 November 2026. This source also contains a follow-up for Alt-click reliability and highlight colors; those fixes require the matching updated build.
 
 **More plugins:** [Banking, Looting, Right-Clicks, Interface Layout and Chat](https://github.com/wukuna#runelite-plugins).
 
@@ -52,6 +52,8 @@ No automatic pickup, gameplay actions, historical loot tracker, GPU depth protot
 ## Label visibility
 
 Hold **Alt** to reveal hidden labels. Alt-click a visible label to hide every copy of that item; Alt-click a revealed hidden label to always show it again. These preferences persist in your RuneLite profile and full setup backups. They affect labels and automatic beams, leaving item menu actions and imported rules intact. Normal clicks pass through; an Alt-click used to edit a label is consumed and never picks up an item.
+
+Showing an item again restores its existing appearance; it does not add a highlight. Existing Highlight overrides keep the item name, card color strip and beam yellow. Explicit rule text colors also take precedence over price-tier colors and animations, in both card themes and Labels mode. Hidden labels revealed with Alt remain gray. Visibility edits retain nearby rows without waiting for the next game tick; dragging a label does not toggle it.
 
 **Display → Minimum value to appear (gp)** hides stacks below their total GE value. Zero disables the minimum. Grouping uses the combined same-tile stack value when enabled; manual Alt-click show overrides the minimum and rule hiding. Nearby loot includes hidden items, and its Filter action clears the manual label override.
 

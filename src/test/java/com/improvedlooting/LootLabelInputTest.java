@@ -36,7 +36,32 @@ public class LootLabelInputTest
     }
     @Test public void newEmptyFrameCannotLeaveInvisibleClickableLabels()
     {
-        Fixture f=new Fixture();f.frame(false);f.input.beginFrame();f.gesture(true,30,30);f.flush();assertNull(f.input.preferences.labelHidden(1));
+        Fixture f=new Fixture();f.frame(false);f.input.beginFrame();f.input.finishFrame();f.gesture(true,30,30);f.flush();assertNull(f.input.preferences.labelHidden(1));
+    }
+    @Test public void displayedLabelsRemainClickableWhileNextFrameIsBeingBuilt()
+    {
+        Fixture f=new Fixture();f.frame(false);f.input.beginFrame();f.gesture(true,30,30);f.flush();
+        assertEquals(Boolean.TRUE,f.input.preferences.labelHidden(1));
+        f.input.finishFrame();f.gesture(true,30,30);f.flush();
+        assertEquals(Boolean.TRUE,f.input.preferences.labelHidden(1));
+    }
+    @Test public void overlappingLabelsTargetTheLastPaintedItem()
+    {
+        Fixture f=new Fixture();net.runelite.api.TileItem item=f.runtime.item(2,1,200);
+        f.runtime.loot.onItemSpawned(new net.runelite.api.events.ItemSpawned(f.runtime.tile,item));f.runtime.tick(101);
+        f.frame(false);f.input.beginFrame();
+        for(int id:new int[]{1,2})f.input.add(new Rectangle(20,20,80,20),f.runtime.loot.entries().stream().filter(e->e.item.getId()==id).findFirst().get(),false);
+        f.input.finishFrame();f.gesture(true,30,30);f.flush();
+        assertNull(f.input.preferences.labelHidden(1));assertEquals(Boolean.TRUE,f.input.preferences.labelHidden(2));
+    }
+    @Test public void draggingOutAndBackDoesNotToggleAndRepeatedReleaseDoesNotQueueTwice()
+    {
+        Fixture f=new Fixture();f.frame(false);
+        f.input.mousePressed(f.event(MouseEvent.MOUSE_PRESSED,true,30,30));
+        f.input.mouseDragged(f.event(MouseEvent.MOUSE_DRAGGED,true,60,30));
+        f.input.mouseReleased(f.event(MouseEvent.MOUSE_RELEASED,true,30,30));f.flush();assertNull(f.input.preferences.labelHidden(1));
+        f.gesture(true,30,30);f.input.mouseReleased(f.event(MouseEvent.MOUSE_RELEASED,true,30,30));
+        assertEquals(1,f.queue.size());
     }
     private static class Fixture {
         final LootRuntimeTest.Fixture runtime=new LootRuntimeTest.Fixture("rule(true){}");

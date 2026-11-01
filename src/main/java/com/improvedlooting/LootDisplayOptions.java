@@ -31,6 +31,6 @@ final class LootDisplayOptions
         return tierColor;
     }
     static boolean tierEffects(ImprovedLootingConfig config,GroundLoot.Entry entry)
-    { return config.priceTiersEnabled() && !untradeable(entry); }
+    { return config.priceTiersEnabled() && !untradeable(entry) && Color.WHITE.equals(entry.display.getTextColor()); }
     private LootDisplayOptions() {}
 }

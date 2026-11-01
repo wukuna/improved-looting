@@ -47,6 +47,7 @@ final class GroundLoot
         final TileItem item;
         ItemFacts facts;
         DisplayConfig display;
+        DisplayConfig filterDisplay;
         BufferedImage image;
         RuneLiteObject beam;
         Color beamColor;
@@ -134,6 +135,21 @@ final class GroundLoot
         return LootDisplayOptions.ownershipHidden(config,e) || LootDisplayOptions.hidden(false,manual,PriceTiers.value(e.facts.getGePrice(),e.renderQuantity),LootDisplayOptions.minimum(config,e));
     }
     double renderTick() { return client.getTickCount() + (lastTickNanos == 0 ? 0 : Math.min(1, (System.nanoTime()-lastTickNanos)/600000000.0)); }
+    // Overrides do not change item facts or icons. Reuse the evaluated filter so
+    // editing one label cannot blank every pile until the next game tick.
+    void refreshOverrides()
+    {
+        if(!running || prepared==null)return;
+        applyOverrides();
+        publishRows();
+        updateBeams();
+    }
+    private void applyOverrides()
+    {
+        preferencesRevision=preferences==null?0:preferences.revision();
+        for(Entry e:entries.values())if(e.facts!=null && e.filterDisplay!=null)
+            e.display=preferences==null?e.filterDisplay:LootPreferences.apply(e.filterDisplay,preferences.action(e.item.getId(),e.source));
+    }
     void refreshSettings()
     {
         menuRanks.clear();
@@ -167,7 +183,7 @@ final class GroundLoot
         if (next == null) { refreshSettings(); status = "Waiting for a valid loot filter"; return; }
         boolean starting = !running;
         long overrideVersion = preferences == null ? 0 : preferences.revision();
-        if (overrideVersion != preferencesRevision) { preferencesRevision = overrideVersion; for (Entry e : entries.values()) e.facts = null; }
+        if (overrideVersion != preferencesRevision) applyOverrides();
         if (next != prepared) { for (Entry e : entries.values()) { e.facts = null; beamOff(e); } prepared = next; }
         int nextAccount=client.getVarbitValue(net.runelite.api.gameval.VarbitID.IRONMAN);
         if(accountType!=nextAccount){accountType=nextAccount;for(Entry e:entries.values())e.facts=null;}
@@ -226,7 +242,11 @@ final class GroundLoot
         if(evaluationsRemaining>0 && (e.facts==null || e.quantity!=quantity || e.ownership!=ownership || (e.key & 63)==(client.getTickCount() & 63))) {
             evaluationsRemaining--;
             ItemFacts facts=filters.facts(e.tile,e.item);e.quantity=quantity;e.ownership=ownership;
-            if(!facts.equals(e.facts)){e.facts=facts;e.display=LootResolution.resolve(prepared,facts,preferences,e.source);e.image=itemImage(e);}
+            if(!facts.equals(e.facts)){
+                e.facts=facts;e.filterDisplay=prepared.program.evaluate(facts);
+                e.display=preferences==null?e.filterDisplay:LootPreferences.apply(e.filterDisplay,preferences.action(facts.getId(),e.source));
+                e.image=itemImage(e);
+            }
         }
         if(e.image==null && e.display.getIcon()!=null)e.image=itemImage(e);
     }

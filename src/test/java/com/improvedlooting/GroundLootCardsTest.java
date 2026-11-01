@@ -15,6 +15,25 @@ import static org.mockito.Mockito.*;
 
 public class GroundLootCardsTest
 {
+    @Test public void highlightedNamesAndRailsStayYellowWithSolidAndAnimatedTiers() throws Exception
+    {
+        LootRuntimeTest.Fixture f=new LootRuntimeTest.Fixture("rule(true){}");GroundLootCards cards=cards(f,1);
+        f.loot.preferences=LootDisplayOptionsTest.preferences(new java.util.HashMap<>());
+        f.loot.preferences.set(1,LootPreferences.Action.HIGHLIGHT,"");f.loot.refreshOverrides();
+        when(f.loot.config.priceTiersEnabled()).thenReturn(true);
+        cards.tiers=new PriceTiers();cards.tiers.configs=mock(net.runelite.client.config.ConfigManager.class);cards.tiers.gson=new com.google.gson.Gson();
+        for(ImprovedLootingConfig.CardTheme theme:ImprovedLootingConfig.CardTheme.values()) {
+            when(f.loot.config.cardTheme()).thenReturn(theme);
+            for(PriceTiers.Effect effect:PriceTiers.Effect.values()) {
+                PriceTiers.Setup setup=PriceTiers.defaults();for(PriceTiers.Tier tier:setup.tiers){tier.effect=effect;tier.color=0xff00ff;}
+                cards.tiers.save(cards.tiers.prepare(setup));BufferedImage image=render(cards);
+                // Fixed-size production card: rail at x=270, name begins at x=311.
+                assertTrue(hasColor(image.getSubimage(270,242,6,26),Color.YELLOW.getRGB()));
+                assertTrue(hasColor(image.getSubimage(311,242,70,26),Color.YELLOW.getRGB()));
+                if(effect==PriceTiers.Effect.RGB)javax.imageio.ImageIO.write(image,"png",new java.io.File("build/highlight-"+theme.name().toLowerCase()+"-preview.png"));
+            }
+        }
+    }
     private static GroundLootCards cards(LootRuntimeTest.Fixture f,int count)
     {
         when(f.view.getId()).thenReturn(WorldView.TOPLEVEL);

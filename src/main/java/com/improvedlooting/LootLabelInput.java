@@ -20,9 +20,9 @@ final class LootLabelInput extends MouseAdapter
     @Inject ClientThread thread;
     @Inject GroundLoot loot;
     @Inject LootPreferences preferences;
-    private volatile List<Hit> hits=Collections.emptyList();
+    private volatile Frame displayed=new Frame(Collections.emptyList(),0,0);
     private final List<Hit> frame=new ArrayList<>();
-    private volatile long generation, renderedAt;
+    private volatile long generation;
     private volatile boolean active;
     private long frameGeneration;
     private Hit pressed;
@@ -32,22 +32,35 @@ final class LootLabelInput extends MouseAdapter
 
     void start(){active=true;reset();}
     void stop(){active=false;reset();}
-    void reset(){generation++;hits=Collections.emptyList();}
-    void beginFrame(){frameGeneration=generation;frame.clear();hits=Collections.emptyList();}
+    synchronized void reset(){generation++;displayed=new Frame(Collections.emptyList(),generation,0);}
+    // Keep the last completed frame clickable while its replacement is painted.
+    void beginFrame(){frameGeneration=generation;frame.clear();}
     void add(Rectangle bounds,GroundLoot.Entry entry,boolean hidden){frame.add(new Hit(bounds,entry.item.getId(),hidden));}
-    void finishFrame(){if(active && frameGeneration==generation){renderedAt=System.nanoTime();hits=Collections.unmodifiableList(new ArrayList<>(frame));}}
+    synchronized void finishFrame(){if(active && frameGeneration==generation)displayed=new Frame(Collections.unmodifiableList(new ArrayList<>(frame)),generation,System.nanoTime());}
 
     @Override public MouseEvent mousePressed(MouseEvent event)
     {
         pressed=null;consumeClick=false;
+        Frame snapshot=displayed;
         if(!active || event.isConsumed() || event.getButton()!=MouseEvent.BUTTON1 || !event.isAltDown()
-            || System.nanoTime()-renderedAt>500_000_000L)return event;
-        for(Hit hit:hits)if(hit.bounds.contains(event.getPoint())) {
-            pressed=hit;pressX=event.getX();pressY=event.getY();pressGeneration=generation;
+            || snapshot.generation!=generation || System.nanoTime()-snapshot.renderedAt>500_000_000L)return event;
+        // The last painted label is the one visible on top of an overlap.
+        for(int i=snapshot.hits.size()-1;i>=0;i--) {
+            Hit hit=snapshot.hits.get(i);if(!hit.bounds.contains(event.getPoint()))continue;
+            pressed=hit;pressX=event.getX();pressY=event.getY();pressGeneration=snapshot.generation;
             consumeClick=true;event.consume();break;
         }
         return event;
     }
+    @Override public MouseEvent mouseDragged(MouseEvent event)
+    {
+        if(consumeClick) {
+            event.consume();
+            if(Math.abs(event.getX()-pressX)>5 || Math.abs(event.getY()-pressY)>5)pressed=null;
+        }
+        return event;
+    }
+    @Override public MouseEvent mouseExited(MouseEvent event){pressed=null;return event;}
     @Override public MouseEvent mouseReleased(MouseEvent event)
     {
         if(!consumeClick || event.getButton()!=MouseEvent.BUTTON1)return event;
@@ -69,5 +82,9 @@ final class LootLabelInput extends MouseAdapter
     private static final class Hit {
         final Rectangle bounds;final int id;final boolean hidden;
         Hit(Rectangle bounds,int id,boolean hidden){this.bounds=new Rectangle(bounds);this.id=id;this.hidden=hidden;}
+    }
+    private static final class Frame {
+        final List<Hit> hits;final long generation,renderedAt;
+        Frame(List<Hit> hits,long generation,long renderedAt){this.hits=hits;this.generation=generation;this.renderedAt=renderedAt;}
     }
 }

@@ -66,7 +66,11 @@ public class ImprovedLootingPlugin extends Plugin
         if(FilterIcons.KEY.equals(e.getKey())) icons.filters.reload();
         if(PriceTiers.KEY.equals(e.getKey())) icons.tiers.reload();
         long token=lifecycle;
-        thread.invoke(()->{if(token==lifecycle && active){loot.refreshSettings();overlay.clear();publisher.clear();}});
+        thread.invoke(()->{if(token==lifecycle && active){
+            if(LootPreferences.KEY.equals(e.getKey()))loot.refreshOverrides();
+            else {loot.refreshSettings();overlay.clear();}
+            publisher.clear();
+        }});
     }
     @Subscribe public void onProfileChanged(ProfileChanged e)
     {
