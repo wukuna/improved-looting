@@ -16,6 +16,49 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class LootBatchTest {
+    @Test public void itemMenuChoiceWinsOverRuleAndGlobalWithoutHidingVisibleTags() {
+        LootRuntimeTest.Fixture f=new LootRuntimeTest.Fixture("apply(id:1){hideMenu=true;}\nrule(true){hideOverlay=true;}");
+        f.loot.preferences=LootDisplayOptionsTest.preferences(new HashMap<>());
+        f.items.add(f.item(1,1,200));f.items.add(f.item(2,1,200));f.tick(100);
+        when(f.loot.config.prioritizeLoot()).thenReturn(false);
+        MenuEntry one=entry(1,MenuAction.GROUND_ITEM_THIRD_OPTION),two=entry(2,MenuAction.GROUND_ITEM_THIRD_OPTION);
+        MenuEntry[] original={one,two};AtomicReference<MenuEntry[]> current=menu(f,original);
+        f.loot.onPostMenuSort(new PostMenuSort());assertArrayEquals(new MenuEntry[]{two},current.get());
+        f.loot.preferences.hideMenu(1,false);f.loot.preferences.hideMenu(2,true);f.loot.refreshOverrides();
+        current.set(original);f.loot.onPostMenuSort(new PostMenuSort());assertArrayEquals(new MenuEntry[]{one},current.get());
+        when(f.loot.config.hideHiddenMenuItems()).thenReturn(true);current.set(original);
+        f.loot.onPostMenuSort(new PostMenuSort());assertArrayEquals(new MenuEntry[]{one},current.get());
+        f.loot.preferences.labelHidden(2,false);f.loot.refreshOverrides();current.set(original);
+        f.loot.onPostMenuSort(new PostMenuSort());assertArrayEquals(original,current.get());
+        f.loot.preferences.hideMenu(1,null);f.loot.refreshOverrides();current.set(original);
+        f.loot.onPostMenuSort(new PostMenuSort());assertArrayEquals(new MenuEntry[]{two},current.get());
+        when(f.loot.client.isKeyPressed(KeyCode.KC_ALT)).thenReturn(true);current.set(original);
+        f.loot.onPostMenuSort(new PostMenuSort());assertArrayEquals(original,current.get());
+    }
+    @Test public void conditionalMenusFailVisibleForMixedUnresolvedAndTargetedEntries() {
+        LootRuntimeTest.Fixture f=new LootRuntimeTest.Fixture("apply(quantity:>=2){hideMenu=true;}\nrule(true){hideOverlay=true;}");
+        f.items.add(f.item(1,1,200));f.items.add(f.item(1,2,200));f.items.add(f.item(2,2,200));f.tick(100);
+        when(f.loot.config.prioritizeLoot()).thenReturn(false);
+        MenuEntry mixed=entry(1,MenuAction.GROUND_ITEM_THIRD_OPTION),hidden=entry(2,MenuAction.GROUND_ITEM_THIRD_OPTION);
+        MenuEntry custom=entry(2,MenuAction.EXAMINE_ITEM_GROUND);when(custom.onClick()).thenReturn(e->{});
+        MenuEntry submenu=entry(2,MenuAction.GROUND_ITEM_THIRD_OPTION);when(submenu.getSubMenu()).thenReturn(mock(Menu.class));
+        MenuEntry forced=entry(2,MenuAction.GROUND_ITEM_THIRD_OPTION);when(forced.isForceLeftClick()).thenReturn(true);
+        MenuEntry[] original={mixed,hidden,custom,submenu,forced};AtomicReference<MenuEntry[]> current=menu(f,original);
+        f.loot.onPostMenuSort(new PostMenuSort());assertArrayEquals(new MenuEntry[]{mixed,custom,submenu,forced},current.get());
+        for(MenuAction target:new MenuAction[]{MenuAction.WIDGET_TARGET_ON_GROUND_ITEM,MenuAction.ITEM_USE_ON_GROUND_ITEM}) {
+            MenuEntry targeting=entry(2,target);MenuEntry[] targeted={hidden,targeting};current.set(targeted);
+            f.loot.onPostMenuSort(new PostMenuSort());assertArrayEquals(targeted,current.get());
+        }
+        f.items.add(f.item(2,1,200));current.set(original);f.loot.onPostMenuSort(new PostMenuSort());assertArrayEquals(original,current.get());
+    }
+    @Test public void ruleKeepOverridesGlobalAndMissingMenuFieldInheritsLegacyDefault() {
+        LootRuntimeTest.Fixture f=new LootRuntimeTest.Fixture("apply(id:1){hideMenu=false;}\nrule(true){hideOverlay=true;}");
+        when(f.loot.config.hideHiddenMenuItems()).thenReturn(true);when(f.loot.config.prioritizeLoot()).thenReturn(false);
+        f.items.add(f.item(1,1,200));f.items.add(f.item(2,1,200));f.tick(100);
+        MenuEntry keep=entry(1,MenuAction.GROUND_ITEM_THIRD_OPTION),hide=entry(2,MenuAction.GROUND_ITEM_THIRD_OPTION);
+        AtomicReference<MenuEntry[]> current=menu(f,keep,hide);MenuOpened opened=new MenuOpened();opened.setMenuEntries(current.get());
+        f.loot.onMenuOpened(opened);assertArrayEquals(new MenuEntry[]{keep},current.get());
+    }
     private static MenuEntry entry(int id,MenuAction action) {
         MenuEntry e=mock(MenuEntry.class);when(e.getType()).thenReturn(action);when(e.getIdentifier()).thenReturn(id);when(e.getOption()).thenReturn("Take");return e;
     }

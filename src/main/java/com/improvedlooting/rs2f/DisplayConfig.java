@@ -40,6 +40,8 @@ public class DisplayConfig {
     private final FontType fontType;
     private final Color menuTextColor;
     private final Boolean hideOverlay;
+    // Improved Looting extension: only ordinary actions for an already hidden tag.
+    private final Boolean hideMenu;
 
     private final Boolean highlightTile;
     private final Color tileStrokeColor;
@@ -71,6 +73,7 @@ public class DisplayConfig {
         tileStrokeColor = null;
         tileFillColor = null;
         hideOverlay = null;
+        hideMenu = null;
         sound = null;
         menuSort = null;
         icon = null;
@@ -153,6 +156,8 @@ public class DisplayConfig {
         if (other.tileStrokeColor != null) { b.tileStrokeColor(other.tileStrokeColor); }
         if (other.tileFillColor != null) { b.tileFillColor(other.tileFillColor); }
         if (other.hideOverlay != null) { b.hideOverlay(other.hideOverlay); }
+        // First explicit menu choice wins, including an explicit keep (false).
+        if (hideMenu == null && other.hideMenu != null) { b.hideMenu(other.hideMenu); }
         if (other.sound != null) { b.sound(other.sound); }
         if (other.menuSort != null) { b.menuSort(other.menuSort); }
         if (other.icon != null) { b.icon(other.icon); }

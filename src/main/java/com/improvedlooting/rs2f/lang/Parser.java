@@ -214,6 +214,8 @@ public class Parser {
                     builder.tileFillColor(assign[1].expectColor()); break;
                 case "hideOverlay":
                     builder.hideOverlay(assign[1].expectBoolean()); break;
+                case "hideMenu":
+                    builder.hideMenu(assign[1].expectBoolean()); break;
                 case "sound":
                     builder.sound(SoundProvider.fromExpr(assign[1])); break;
                 case "menuSort":

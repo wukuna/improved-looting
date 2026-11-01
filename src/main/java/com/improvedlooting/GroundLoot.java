@@ -34,6 +34,7 @@ final class GroundLoot
     private volatile FilterIcons.Prepared prepared;
     private volatile boolean running;
     private boolean groundAllowed;
+    private boolean conditionalMenuHiding;
     private long sequence, preferencesRevision, lastTickNanos;
     private volatile List<LootRow> rows = Collections.emptyList();
     private List<Entry> ordered = Collections.emptyList();
@@ -69,10 +70,16 @@ final class GroundLoot
         boolean found=false;
         for(TileItem item:tile.getGroundItems())if(item.getId()==id) {
             Entry e=entries.get(item);
-            if(e==null || e.facts==null || e.display==null || !labelHidden(e))return false;
+            if(e==null || e.facts==null || e.display==null || !menuHidden(e))return false;
             found=true;
         }
         return found;
+    }
+    boolean menuHidden(Entry e)
+    {
+        Boolean choice=preferences==null?null:preferences.hideMenu(e.item.getId());
+        if(choice==null)choice=e.display.getHideMenu();
+        return (choice==null?config.hideHiddenMenuItems():choice) && labelHidden(e);
     }
     private void updateMenu(MenuOpened event) {
         if(client.getGameState()!=GameState.LOGGED_IN)return;
@@ -80,7 +87,7 @@ final class GroundLoot
         // Never change selected-item or selected-spell targeting menus.
         for(MenuEntry e:original)if(e.getType()==MenuAction.WIDGET_TARGET_ON_GROUND_ITEM
             || e.getType()==MenuAction.ITEM_USE_ON_GROUND_ITEM)return;
-        if(config.hideHiddenMenuItems() && !reveal()) {
+        if((config.hideHiddenMenuItems() || conditionalMenuHiding) && !reveal()) {
             List<MenuEntry> visible=new ArrayList<>();
             for(MenuEntry e:original) {
                 boolean hide=false;
@@ -112,7 +119,7 @@ final class GroundLoot
     {
         for (Entry e : entries.values()) if (e.key == key && prepared != null && e.facts != null)
             return LootResolution.explain(prepared, e.facts, e.display, preferences == null ? LootPreferences.Action.FILTER : preferences.action(e.item.getId(), e.source),
-                e.source, LootResolution.secondsRemaining(e.item.getDespawnTime(), client.getTickCount())) + "\nFinal ground label: "+(labelHidden(e)?"hidden":"visible")+"\nAlt-click label override: "+(preferences==null?null:preferences.labelHidden(e.item.getId()))+"\nMinimum label value: "+config.minimumLabelValue()+" gp\nBeam on this tile: "+beamTiles.contains(e.tile) + (icons.find(e.item.getId())==null?"":"\nManual icon override: "+icons.find(e.item.getId()));
+                e.source, LootResolution.secondsRemaining(e.item.getDespawnTime(), client.getTickCount())) + "\nFinal ground label: "+(labelHidden(e)?"hidden":"visible")+"\nAlt-click label override: "+(preferences==null?null:preferences.labelHidden(e.item.getId()))+"\nItem menu choice: "+LootMenuChoice.of(preferences==null?null:preferences.hideMenu(e.item.getId()))+"\nRule menu choice: "+LootMenuChoice.of(e.display.getHideMenu())+"\nOrdinary menu actions: "+(menuHidden(e)?"hidden (Alt reveals)":"kept")+"\nMinimum label value: "+config.minimumLabelValue()+" gp\nBeam on this tile: "+beamTiles.contains(e.tile) + (icons.find(e.item.getId())==null?"":"\nManual icon override: "+icons.find(e.item.getId()));
         return "This pile is no longer nearby. Refresh the browser.";
     }
     DisplayConfig resolved(Tile tile, TileItem item)
@@ -152,6 +159,7 @@ final class GroundLoot
     }
     void refreshSettings()
     {
+        conditionalMenuHiding=false;
         menuRanks.clear();
         prepared=null;
         for(Entry e:entries.values()){e.facts=null;e.image=null;beamOff(e);}
@@ -159,6 +167,7 @@ final class GroundLoot
     }
     void clear()
     {
+        conditionalMenuHiding=false;
         menuRanks.clear();
         for (Entry e : entries.values()) beamOff(e);
         entries.clear(); beamTiles.clear(); prepared = null; running = false; localViewId=Integer.MIN_VALUE; rows = Collections.emptyList(); ordered = Collections.emptyList(); selected = -1; if(alerts != null) alerts.clear();
@@ -249,7 +258,9 @@ final class GroundLoot
             }
         }
         if(e.image==null && e.display.getIcon()!=null)e.image=itemImage(e);
+        if(e.display!=null && explicitlyHidesMenu(e))conditionalMenuHiding=true;
     }
+    private boolean explicitlyHidesMenu(Entry e){Boolean itemChoice=preferences==null?null:preferences.hideMenu(e.item.getId());return Boolean.TRUE.equals(itemChoice==null?e.display.getHideMenu():itemChoice);}
     private BufferedImage itemImage(Entry e)
     {
         ItemIcons.Assignment manual = icons.find(e.item.getId());
@@ -257,10 +268,13 @@ final class GroundLoot
     }
     private void publishRows()
     {
+        conditionalMenuHiding=false;
         List<Entry> nearby = new ArrayList<>();
         Player player=client.getLocalPlayer();LocalPoint point=player==null?null:player.getLocalLocation();WorldView view=player==null?null:player.getWorldView();
         int range=LootAlerts.clamp(config.labelRange(),1,64),world=view==null?Integer.MIN_VALUE:view.getId(),plane=view==null?-1:view.getPlane();
-        for(Entry e:entries.values()) {LocalPoint at=e.tile.getLocalLocation();if(e.facts==null || point==null || at==null || at.getWorldView()!=world || e.tile.getPlane()!=plane)continue;
+        for(Entry e:entries.values()) {
+            if(e.facts!=null && e.display!=null && explicitlyHidesMenu(e))conditionalMenuHiding=true;
+            LocalPoint at=e.tile.getLocalLocation();if(e.facts==null || point==null || at==null || at.getWorldView()!=world || e.tile.getPlane()!=plane)continue;
             e.distance=Math.max(Math.abs(point.getX()-at.getX()),Math.abs(point.getY()-at.getY()))/128;if(e.distance<=range)nearby.add(e); }
         Comparator<Entry> byName = Comparator.comparing(e -> e.facts.getName(), String.CASE_INSENSITIVE_ORDER);
         ImprovedLootingConfig.LabelOrder order = config.labelOrder();

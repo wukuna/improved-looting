@@ -22,11 +22,11 @@ final class ReleaseNotesNotice
     static final String RELEASE = "2026-11-01-label-input-colors";
     static final String SEEN_KEY = "releaseNotesShown";
     private static final String[] RECENT = {
+        "Conditional menu hiding: item choices and name/value/ownership/region rules override the global default for hidden tags.",
         "Alt-click hide/show is more reliable during redraws; highlighted names and color strips keep their highlight color instead of tier effects.",
         "Prioritize valuable loot now also orders left-click Take; fresh ensouled heads use their normal tradeable tier.",
         "Display now offers Only show owned drops, an untradeable minimum-value exception, and an untradeable color picker defaulting to red.",
         "New options: fit each card separately, drain the color strip as loot expires, and hide filtered items from ordinary loot menus.",
-        "Compact ground cards: tier-colored text, pictures, quantities and optional prices, with Native / OSRS themes, background colors, size and borders.",
     };
 
     @Inject private Client client;

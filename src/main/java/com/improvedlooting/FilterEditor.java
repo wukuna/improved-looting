@@ -23,7 +23,9 @@ final class FilterEditor
     private int revision;
     private boolean closed;
     private String seedName;
+    private boolean menuOnly;
     void seedName(String name) { seedName=name; }
+    void menuOnly(){menuOnly=true;}
     private ItemPicker itemPicker;
     private IconPalette iconPalette;
     private RuleOptions options;
@@ -81,7 +83,7 @@ final class FilterEditor
         JPanel body=new JPanel(new BorderLayout(10,10));
         body.setBorder(BorderFactory.createEmptyBorder(8,4,8,4));
         JTextArea explanation=new JTextArea("Find an item, choose an icon, then add the rule to your draft. You can still type a wildcard pattern such as *potion*. Earlier matching rules take priority.");
-        explanation.setPreferredSize(new Dimension(400,36));
+        explanation.setPreferredSize(new Dimension(400,30));
         explanation.setRows(2); explanation.setLineWrap(true); explanation.setWrapStyleWord(true); explanation.setEditable(false); explanation.setOpaque(false);
         body.add(explanation,BorderLayout.NORTH);
         itemPicker=new ItemPicker(icons.search);
@@ -96,14 +98,17 @@ final class FilterEditor
         JComboBox<String> position=new JComboBox<>(new String[]{"Before existing rules (higher priority)","After existing rules (fallback)"});
         if(original.sounds==null)original.sounds=new java.util.LinkedHashMap<>();
         options=new RuleOptions(icons,original.sounds);
+        options.onMenuModeChanged(()->{enableControls(visual,!options.isMenuOnly());position.setEnabled(!options.isMenuOnly());if(options.isMenuOnly())position.setSelectedIndex(0);
+            explanation.setText(options.isMenuOnly()?"Choose an item name or wildcard, then set conditions and its hidden-tag menu choice. Existing appearance rules stay in effect.":"Find an item, choose an icon, then add the rule to your draft. Use Conditions and menu for value, ownership or region limits.");});
+        if(menuOnly)options.menuOnly();
         JPanel choices=new JPanel(new BorderLayout(5,5));choices.add(options,BorderLayout.CENTER);choices.add(position,BorderLayout.SOUTH);
         actions.add(choices,BorderLayout.NORTH);
         JButton add=new JButton("Add to draft and review");
         add.addActionListener(e -> {
             try {
-                IconPalette.Selection choice=iconPalette.selection();
-                String rule=options.apply(rule(itemPicker.value(),choice));
-                if(choice.image!=null) {
+                IconPalette.Selection choice=options.isMenuOnly()?null:iconPalette.selection();
+                String rule=options.apply(choice==null?rule(itemPicker.value(),0,0):rule(itemPicker.value(),choice));
+                if(choice!=null && choice.image!=null) {
                     String existing=original.images.get(choice.file);
                     if(existing!=null && !existing.equals(choice.image)) throw new IllegalArgumentException("An existing image uses that filename. Choose a different icon.");
                     original.images.put(choice.file,choice.image);
@@ -116,6 +121,8 @@ final class FilterEditor
         actions.add(add,BorderLayout.SOUTH); body.add(actions,BorderLayout.SOUTH);
         return body;
     }
+
+    private static void enableControls(Container parent,boolean enabled){for(Component child:parent.getComponents()){child.setEnabled(enabled);if(child instanceof Container)enableControls((Container)child,enabled);}}
 
     static String rule(String name,IconPalette.Selection selection)
     {

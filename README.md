@@ -6,7 +6,7 @@ Make ground loot easier to scan with compact cards or classic labels, Native / O
 
 Open the chest side panel for Display, Style, Rules and imports, and Alerts. Hover controls for brief explanations. Existing filters, assignments, assets and price tiers retain their saved settings.
 
-**Availability:** Install **Improved Looting** from RuneLite's Plugin Hub. The left-click priority, ensouled-head, per-card width, strip timer and optional menu-hiding update [#19873](https://github.com/runelite/plugin-hub/pull/19873) merged on 1 November 2026. This source also contains a follow-up for Alt-click reliability and highlight colors; those fixes require the matching updated build.
+**Availability:** Install **Improved Looting** from RuneLite's Plugin Hub. The left-click priority, ensouled-head, per-card width, strip timer and optional menu-hiding update [#19873](https://github.com/runelite/plugin-hub/pull/19873) merged on 1 November 2026. The follow-up [#19891](https://github.com/runelite/plugin-hub/pull/19891) includes Alt-click reliability, highlight colors and conditional menu hiding; these changes require the matching updated build.
 
 **More plugins:** [Banking, Looting, Right-Clicks, Interface Layout and Chat](https://github.com/wukuna#runelite-plugins).
 
@@ -65,5 +65,23 @@ Showing an item again restores its existing appearance; it does not add a highli
 
 - **Style > Cards only > Fit each card separately** gives each row its own content width instead of matching the longest line in its pile. Off by default; applies with Fit full item names or Pictures only. Manual width still fixes every row to the chosen width.
 - **Display > Color strip despawn timer** drains the left accent from top to bottom. It is independent of Text timer and Fade picture as loot expires, so use any combination. Unknown despawn times leave the strip full.
-- **Display > Hide filtered items in menus** optionally removes hidden items' ordinary ground actions, including Take and Examine. This follows explicit hiding, minimum value and ownership filtering. Hold Alt before opening to reveal them. If duplicate copies disagree, a visible or unresolved copy keeps the entry available. Selected-item/spell targeting and custom callback/submenu actions remain intact. Off by default.
+- **Display > Hide filtered items in menus** sets the default for hidden tags without an item or rule menu choice. It starts off. See conditional menu hiding below.
 - Fresh ensouled heads use RuneLite's explicit tradeable-head mapping for their category and tier coloring, while retaining their actual ground-item identity and native pickup action.
+
+## Conditional menu hiding
+
+For an exact item, open **Display > Nearby loot / hidden labels**, select it, choose **Hidden tag in menu**, then **Save menu choice**:
+
+- **Follow default:** use its matching menu rule, otherwise the global checkbox.
+- **Hide when tag hidden:** remove its ordinary ground actions only while its tag is hidden.
+- **Keep in menu:** retain those actions even when its tag is hidden.
+
+For conditions, open **Display > Edit conditional menu rules**. Search an item name or use a wildcard, choose Hide/Keep, and optionally set minimum/maximum stack GE value, ownership or a map region. Leave **Menu choice only** selected to preserve existing appearance rules. Add the rule to the draft, check it, then save. The first matching explicit menu choice wins; new menu-only rules go before existing rules so a terminating appearance rule cannot prevent them being reached. Full appearance rules can also include a menu choice.
+
+Precedence is **exact item choice > first matching menu rule > global checkbox**. Tags that are visible always keep their actions. The condition uses each native ground stack's quantity and value, not the total of separately grouped copies. Minimum/maximum values are inclusive; maximum 0 means no upper limit. Region matching uses the drop's location (instance template coordinates), on all planes, and does not match an unknown location.
+
+Hold **Alt before opening the menu** to reveal actions. Only ordinary ground actions, including Take and Examine, are filtered. Item/spell targeting, custom callbacks, submenus and forced left-click entries are preserved. If duplicate copies disagree or any copy is unresolved, the menu entry remains available. These controls do not force another plugin to restore entries it has removed.
+
+Item choices and rule conditions are included in presets, full backups and undo. Existing profiles inherit their current global setting; Alt-click and appearance edits retain separate item menu choices. Select Follow default and save to clear an exact-item choice; remove a conditional rule in the draft to clear it.
+
+Advanced script extension (Improved Looting only): `hideMenu=true` means hide ordinary actions **when the tag is hidden**, `hideMenu=false` means keep them, and omitting it inherits the next default. For example, place `apply(name:"Bones" && gevalue:<=1000) { hideMenu=true; }` before existing appearance rules. Existing RS2F files remain unchanged unless you edit them; other RS2F consumers may not support this additional field.

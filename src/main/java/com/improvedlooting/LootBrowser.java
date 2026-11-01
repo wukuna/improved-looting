@@ -22,6 +22,7 @@ final class LootBrowser
     private final JTextArea inspector=new JTextArea();
     private final JCheckBox hidden=new JCheckBox("Include hidden",true),grid=new JCheckBox("Grid");
     private final JComboBox<String> order=new JComboBox<>(new String[]{"Value","Distance","Time remaining","Name"});
+    private final JComboBox<LootMenuChoice> menuChoice=new JComboBox<>(LootMenuChoice.values());
     private final JLabel status=new JLabel();
     private final javax.swing.Timer timer;
     private final Object profile;
@@ -56,6 +57,9 @@ final class LootBrowser
         for(LootPreferences.Action action:LootPreferences.Action.values()) button(actions,action==LootPreferences.Action.FILTER?"Use filter":title(action.name()),()->override(action));
         actions.add(new JLabel("Item category"));actions.add(category);
         button(actions,"Save category",()->override(null));button(actions,"Create filter rule",this::createRule);
+        menuChoice.setToolTipText("This exact item: override matching menu rules and the global setting. Visible tags always keep their menu actions.");
+        actions.add(new JLabel("Hidden tag in menu"));actions.add(menuChoice);
+        button(actions,"Save menu choice",this::saveMenu);button(actions,"Create menu rule",this::createMenuRule);
         button(actions,"Wiki drop table",this::wiki);button(actions,"Source availability",this::source);
         detail.add(actions,BorderLayout.SOUTH);
         JSplitPane split=new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,new JScrollPane(list),detail);split.setResizeWeight(.55);split.setDividerLocation(470);root.add(split,BorderLayout.CENTER);
@@ -76,7 +80,7 @@ final class LootBrowser
     }
     private void inspect()
     {
-        LootRow row=list.getSelectedValue();int revision=++selectionRevision;if(row==null)return;category.setText(row.category);inspector.setText("Reading resolved rules…");
+        LootRow row=list.getSelectedValue();int revision=++selectionRevision;if(row==null)return;category.setText(row.category);menuChoice.setSelectedItem(LootMenuChoice.of(preferences.hideMenu(row.itemId)));inspector.setText("Reading resolved rules…");
         clientThread.invokeLater(()->{if(!valid())return;loot.select(row.key);String text=loot.explain(row.key);SwingUtilities.invokeLater(()->{if(valid()&&revision==selectionRevision){inspector.setText(text);inspector.setCaretPosition(0);}});});
     }
     private void override(LootPreferences.Action action)
@@ -87,6 +91,13 @@ final class LootBrowser
             inspector.append("\nSaved. The next game tick refreshes this view.");}catch(IllegalArgumentException e){error(e);}
     }
     private void createRule(){LootRow row=list.getSelectedValue();if(row==null||!valid())return;if(editor!=null)editor.close();editor=new FilterEditor(icons);editor.seedName(row.name);editor.open(dialog);}
+    private void createMenuRule(){LootRow row=list.getSelectedValue();if(row==null||!valid())return;if(editor!=null && editor.isOpen()){editor.focus();return;}editor=new FilterEditor(icons);editor.seedName(row.name);editor.menuOnly();editor.open(dialog);}
+    private void saveMenu()
+    {
+        LootRow row=list.getSelectedValue();if(row==null||!valid())return;
+        try{preferences.hideMenu(row.itemId,((LootMenuChoice)menuChoice.getSelectedItem()).hide);inspect();}
+        catch(IllegalArgumentException e){error(e);}
+    }
     private void source()
     {
         JOptionPane.showMessageDialog(dialog,"RuneLite 1.13.4 reports monster loot without ground-pile locations.\nThe source of a particular pile is unavailable, so monster-source filters are inactive.\nItem, value and ownership rules remain available; we never infer a source from nearby NPCs.");

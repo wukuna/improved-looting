@@ -14,7 +14,7 @@ final class LootPreferences
 {
     static final String KEY = "lootOverridesV1";
     enum Action { FILTER, SHOW, HIDE, HIGHLIGHT }
-    static final class ItemRule { Action action = Action.FILTER; String category = ""; Boolean labelHidden; }
+    static final class ItemRule { Action action = Action.FILTER; String category = ""; Boolean labelHidden, hideMenu; }
     static final class Data
     {
         int version = 1;
@@ -64,17 +64,25 @@ final class LootPreferences
     {
         Data next = parse(gson.toJson(snapshot()));
         ItemRule rule = next.items.getOrDefault(id,new ItemRule()); rule.action = action; rule.category = category.trim();
-        if (action == Action.FILTER && rule.category.isEmpty() && rule.labelHidden==null) next.items.remove(id); else next.items.put(id, rule);
+        if (action == Action.FILTER && rule.category.isEmpty() && rule.labelHidden==null && rule.hideMenu==null) next.items.remove(id); else next.items.put(id, rule);
         save(next);
     }
     synchronized void labelHidden(int id,Boolean value)
     {
         Data next=parse(gson.toJson(snapshot()));ItemRule rule=next.items.getOrDefault(id,new ItemRule());
         rule.labelHidden=value;
-        if(rule.action==Action.FILTER && rule.category.isEmpty() && value==null)next.items.remove(id);else next.items.put(id,rule);
+        if(rule.action==Action.FILTER && rule.category.isEmpty() && value==null && rule.hideMenu==null)next.items.remove(id);else next.items.put(id,rule);
         save(next);
     }
     Boolean labelHidden(int id){ItemRule rule=snapshot().items.get(id);return rule==null?null:rule.labelHidden;}
+    Boolean hideMenu(int id){ItemRule rule=snapshot().items.get(id);return rule==null?null:rule.hideMenu;}
+    synchronized void hideMenu(int id,Boolean value)
+    {
+        Data next=parse(gson.toJson(snapshot()));ItemRule rule=next.items.getOrDefault(id,new ItemRule());
+        rule.hideMenu=value;
+        if(rule.action==Action.FILTER && rule.category.isEmpty() && rule.labelHidden==null && value==null)next.items.remove(id);else next.items.put(id,rule);
+        save(next);
+    }
     synchronized void source(String name, Action action)
     {
         Data next = parse(gson.toJson(snapshot()));

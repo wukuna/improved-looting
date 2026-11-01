@@ -17,7 +17,7 @@ public class AreaCondition extends LeafCondition {
     @Override
     public boolean test(FilterContext plugin, ItemFacts item) {
         var p = item.getWorldPoint();
-        return p.getX() >= p0.getX() && p.getY() >= p0.getY() && p.getPlane() >= p0.getPlane()
+        return p != null && p.getX() >= p0.getX() && p.getY() >= p0.getY() && p.getPlane() >= p0.getPlane()
                 && p.getX() <= p1.getX() && p.getY() <= p1.getY() && p.getPlane() <= p1.getPlane();
     }
 }

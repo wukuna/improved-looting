@@ -42,7 +42,7 @@ public class ReleaseNotesNoticeTest
         notice.start(); flush();
         ArgumentCaptor<QueuedMessage> messages=ArgumentCaptor.forClass(QueuedMessage.class);
         verify(chat,times(6)).queue(messages.capture());
-        assertTrue(messages.getAllValues().get(1).getRuneLiteFormattedMessage().contains("Alt-click hide/show"));
+        assertTrue(messages.getAllValues().get(1).getRuneLiteFormattedMessage().contains("Conditional menu hiding"));
         assertEquals(ReleaseNotesNotice.RELEASE,seen);
         notice.onGameStateChanged(loggedIn()); flush();
         notice.stop(); notice.start(); flush();

@@ -58,6 +58,10 @@ public class ItemPickerTest
             BufferedImage image=new BufferedImage(850,550,BufferedImage.TYPE_INT_RGB); Graphics2D g=image.createGraphics(); panel.printAll(g); g.dispose();
             try { ImageIO.write(image,"png",new java.io.File("build/item-picker-preview.png")); } catch(java.io.IOException ex) { throw new AssertionError(ex); }
             assertTrue("Item and icon controls must remain visible",panel.getComponent(1).getHeight()>200); editor.close();
+            FilterEditor menuEditor=new FilterEditor(icons);menuEditor.menuOnly();JPanel menuPanel=menuEditor.builder(new JTabbedPane());menuPanel.setSize(850,550);layout(menuPanel);
+            BufferedImage menuImage=new BufferedImage(850,550,BufferedImage.TYPE_INT_RGB);Graphics2D menuGraphics=menuImage.createGraphics();menuPanel.printAll(menuGraphics);menuGraphics.dispose();
+            try{ImageIO.write(menuImage,"png",new java.io.File("build/menu-rule-builder-preview.png"));}catch(java.io.IOException ex){throw new AssertionError(ex);}
+            assertTrue(menuPanel.getComponent(1).getHeight()>200);menuEditor.close();
         });
     }
     private static void layout(Container container) { container.doLayout(); for(Component c:container.getComponents()) if(c instanceof Container) layout((Container)c); }
