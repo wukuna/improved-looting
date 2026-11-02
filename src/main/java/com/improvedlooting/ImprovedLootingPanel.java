@@ -20,51 +20,51 @@ final class ImprovedLootingPanel extends PluginPanel
     private LootBrowser browser;
     private LootProfilesEditor presets;
     private boolean syncing,closed;
-    final JComboBox<String> page=new JComboBox<>(new String[]{"Display","Style","Rules and imports","Alerts"});
+    final JTabbedPane page=new JTabbedPane();
     ImprovedLootingPanel(ItemIcons icons,ImprovedLootingConfig config,GroundLoot loot,LegacyImport migration,net.runelite.client.callback.ClientThread thread,LootPreferences preferences,LootProfiles profiles)
     {
         this.icons=icons; this.migration=migration;
         setLayout(new BorderLayout(0,10)); setBorder(BorderFactory.createEmptyBorder(10,8,10,8));
-        JPanel header=new JPanel(new BorderLayout(0,8));header.add(help("<b>Improved Looting</b><br>This plugin is currently in Beta mode"),BorderLayout.NORTH);header.add(page,BorderLayout.SOUTH);add(header,BorderLayout.NORTH);
-        CardLayout pages=new CardLayout();JPanel tabs=new JPanel(pages);
-        JPanel rules=column(),display=column(),appearance=column(),alerts=column();
+        JPanel header=new JPanel(new BorderLayout(0,8));header.add(help("<b>Improved Looting</b><br>This plugin is currently in Beta mode"),BorderLayout.NORTH);add(header,BorderLayout.NORTH);
+        JPanel rules=column(),display=column(),appearance=column(),alerts=column(),tools=column();
         JLabel status=help(icons.filters.status()); rules.add(status);
         JLabel ruleGround=help(loot.status());rules.add(ruleGround);
         button(rules,"Nearby loot / inspector",()->{if(browser!=null)browser.close();browser=new LootBrowser(loot,icons,thread,preferences);browser.open(this);});
-        button(rules,"Presets / full backup",()->{if(presets!=null)presets.close();presets=new LootProfilesEditor(profiles);presets.open(this);});
+        button(tools,"Presets / full backup",()->{if(presets!=null)presets.close();presets=new LootProfilesEditor(profiles);presets.open(this);});
         button(rules,"Edit rules",()->{ if(editor!=null && editor.isOpen()) { editor.focus(); return; } editor=new FilterEditor(icons); editor.open(this); });
-        button(rules,"Import / assets / backups",()->{ if(assets!=null) assets.close(); assets=new ItemIconEditor(icons); assets.open(this); });
-        hint(button(rules,"Copy Right-Clicks setup",this::copyLegacy),"Copy your filter and images here; the original setup is preserved.");
-        section(display,"Ground items");
+        button(tools,"Import / assets / backups",()->{ if(assets!=null) assets.close(); assets=new ItemIconEditor(icons); assets.open(this); });
+        hint(button(tools,"Copy Right-Clicks setup",this::copyLegacy),"Copy your filter and images here; the original setup is preserved.");
         hint(toggle(display,"Show ground labels","lootOverlay",config::lootOverlay),"Show this plugin's ground display. Disable overlapping ground labels in other plugins.");
         JLabel ground=help(loot.status()); display.add(ground);
         choice(display,"Display style","groundStyle",ImprovedLootingConfig.GroundStyle.values(),config::groundStyle);
         JComboBox<ImprovedLootingConfig.CardTheme> cardTheme=choice(display,"Card theme","cardTheme",ImprovedLootingConfig.CardTheme.values(),config::cardTheme);
         hint(cardTheme,"Native: rounded cards. OSRS: square bronze edges and RuneScape lettering. Applies to Cards only.");
-        hint(toggle(display,"Pictures only (with quantity)","lootCompact",config::lootCompact),"Show the picture and quantity; hide names, prices and text timers. Supplies an item picture if no rule does.");
-        JComboBox<ImprovedLootingConfig.DetailMode> prices=choice(display,"Prices","priceDisplay",ImprovedLootingConfig.DetailMode.values(),config::priceDisplay);
-        JComboBox<ImprovedLootingConfig.DetailMode> timers=choice(display,"Text timer","timerDisplay",ImprovedLootingConfig.DetailMode.values(),config::timerDisplay);
+        JPanel details=disclosure(display,"Label details…");
+        hint(toggle(details,"Pictures only (with quantity)","lootCompact",config::lootCompact),"Show the picture and quantity; hide names, prices and text timers. Supplies an item picture if no rule does.");
+        JComboBox<ImprovedLootingConfig.DetailMode> prices=choice(details,"Prices","priceDisplay",ImprovedLootingConfig.DetailMode.values(),config::priceDisplay);
+        JComboBox<ImprovedLootingConfig.DetailMode> timers=choice(details,"Text timer","timerDisplay",ImprovedLootingConfig.DetailMode.values(),config::timerDisplay);
         hint(prices,"Hidden: no prices. Follow rules: use your filter. Always: show known values.");
         hint(timers,"Hidden: no text timer. Follow rules: use your filter. Always: show known despawn times.");
-        JCheckBox shortPrices=toggle(display,"Short prices (8.3k gp)","cardShortPrices",config::cardShortPrices);
-        hint(toggle(display,"Fade picture as loot expires","iconDespawnFade",config::iconDespawnFade),"Fade pictures when the despawn time is known. Independent of the text timer.");
-        hint(toggle(display,"Color strip despawn timer","railDespawnTimer",config::railDespawnTimer),"Drain the left color strip from top to bottom. Cards only; independent of the picture fade and text timer.");
-        section(display,"Visibility");
-        hint(toggle(display,"Only show owned drops","onlyShowOwnedDrops",config::onlyShowOwnedDrops),"Show your drops and shared Group Ironman loot, using the game's ownership flag. Public/unowned and other-player drops are hidden, including beams and alerts. Hold Alt to reveal hidden labels temporarily.");
-        hint(number(display,"Minimum value to appear (gp)","minimumLabelValue",config::minimumLabelValue,0,Integer.MAX_VALUE),"Minimum GE value for the visible stack. 0 shows all values; manually shown items bypass the minimum.");
-        hint(toggle(display,"Keep untradeables visible","keepUntradeablesVisible",config::keepUntradeablesVisible),"Untradeable items bypass the minimum value, including items with no GE price. Your ownership filter and explicit hide rules still apply.");
-        untradeableColor(display,config);
-        hint(toggle(display,"Hide filtered items in menus","hideHiddenMenuItems",config::hideHiddenMenuItems),"Default for hidden tags without an item or rule menu choice. Item choices override matching rules; rules override this checkbox. Alt reveals ordinary actions. Targeting and custom actions are preserved.");
-        hint(button(display,"Edit conditional menu rules",()->{if(editor!=null && editor.isOpen()){editor.focus();return;}editor=new FilterEditor(icons);editor.menuOnly();editor.open(this);}),"Choose item names, stack value, ownership and optional region. For an exact item override, use Nearby loot / hidden labels.");
-        JLabel shortcuts=help("Alt: reveal hidden<br>Alt-click: hide/show item");display.add(shortcuts);
+        JCheckBox shortPrices=toggle(details,"Short prices (8.3k gp)","cardShortPrices",config::cardShortPrices);
+        hint(toggle(details,"Fade picture as loot expires","iconDespawnFade",config::iconDespawnFade),"Fade pictures when the despawn time is known. Independent of the text timer.");
+        hint(toggle(details,"Color strip despawn timer","railDespawnTimer",config::railDespawnTimer),"Drain the left color strip from top to bottom. Cards only; independent of the picture fade and text timer.");
+        JPanel visibility=disclosure(display,"Visibility and menus…");
+        hint(toggle(visibility,"Only show owned drops","onlyShowOwnedDrops",config::onlyShowOwnedDrops),"Show your drops and shared Group Ironman loot, using the game's ownership flag. Public/unowned and other-player drops are hidden, including beams and alerts. Hold Alt to reveal hidden labels temporarily.");
+        hint(number(visibility,"Minimum value to appear (gp)","minimumLabelValue",config::minimumLabelValue,0,Integer.MAX_VALUE),"Minimum GE value for the visible stack. 0 shows all values; manually shown items bypass the minimum.");
+        hint(toggle(visibility,"Keep untradeables visible","keepUntradeablesVisible",config::keepUntradeablesVisible),"Untradeable items bypass the minimum value, including items with no GE price. Your ownership filter and explicit hide rules still apply.");
+        untradeableColor(visibility,config);
+        hint(toggle(visibility,"Hide filtered items in menus","hideHiddenMenuItems",config::hideHiddenMenuItems),"Default for hidden tags without an item or rule menu choice. Item choices override matching rules; rules override this checkbox. Alt reveals ordinary actions. Targeting and custom actions are preserved.");
+        hint(button(rules,"Edit conditional menu rules",()->{if(editor!=null && editor.isOpen()){editor.focus();return;}editor=new FilterEditor(icons);editor.menuOnly();editor.open(this);}),"Choose item names, stack value, ownership and optional region. For an exact item override, use Nearby loot / hidden labels.");
+        JLabel shortcuts=help("Alt: reveal hidden<br>Alt-click: hide/show item");visibility.add(shortcuts);
         hint(shortcuts,"Alt-click toggles every copy of that item. Showing a hidden item also bypasses the minimum value. The optional menu filter also hides ordinary ground actions; Alt reveals them.");
-        button(display,"Nearby loot / hidden labels",()->{if(browser!=null)browser.close();browser=new LootBrowser(loot,icons,thread,preferences);browser.open(this);});
-        toggle(display,"Group matching stacks on a tile","groupStacks",config::groupStacks);
-        hint(toggle(display,"Prioritize valuable loot","prioritizeLoot",config::prioritizeLoot),"Top to bottom: normal loot by total GE value, bones/ashes, then untradeables. Applies to cards, labels and left/right-click Take order. Overrides Item order and filter menu sorting while enabled. Other actions and item/spell targeting retain their priority.");
-        hint(choice(display,"Item order","labelOrder",ImprovedLootingConfig.LabelOrder.values(),config::labelOrder),"Used when Prioritize valuable loot is off.");
-        choice(display,"Alignment at the pile","labelAlignment",ImprovedLootingConfig.LabelAlignment.values(),config::labelAlignment);
-        number(display,"Range (tiles)","labelRange",config::labelRange,1,64);
-        number(display,"Maximum labels","maxLabels",config::maxLabels,10,1000);
+        button(visibility,"Nearby loot / hidden labels",()->{if(browser!=null)browser.close();browser=new LootBrowser(loot,icons,thread,preferences);browser.open(this);});
+        JPanel ordering=disclosure(display,"Pile order and range…");
+        toggle(ordering,"Group matching stacks on a tile","groupStacks",config::groupStacks);
+        hint(toggle(ordering,"Prioritize valuable loot","prioritizeLoot",config::prioritizeLoot),"Top to bottom: normal loot by total GE value, bones/ashes, then untradeables. Applies to cards, labels and left/right-click Take order. Overrides Item order and filter menu sorting while enabled. Other actions and item/spell targeting retain their priority.");
+        hint(choice(ordering,"Item order","labelOrder",ImprovedLootingConfig.LabelOrder.values(),config::labelOrder),"Used when Prioritize valuable loot is off.");
+        choice(ordering,"Alignment at the pile","labelAlignment",ImprovedLootingConfig.LabelAlignment.values(),config::labelAlignment);
+        number(ordering,"Range (tiles)","labelRange",config::labelRange,1,64);
+        number(ordering,"Maximum labels","maxLabels",config::maxLabels,10,1000);
         section(appearance,"Text and pictures - both styles");
         number(appearance,"Text size (0: default)","labelFontSize",config::labelFontSize,0,32);
         number(appearance,"Space between rows (pixels)","labelSpacing",config::labelSpacing,0,16);
@@ -110,10 +110,22 @@ final class ImprovedLootingPanel extends PluginPanel
         toggle(alerts,"Despawn warnings","despawnWarnings",config::despawnWarnings);
         number(alerts,"Warning time (s)","despawnSeconds",config::despawnSeconds,1,120);
         number(alerts,"Minimum stack value","despawnMinimum",config::despawnMinimum,0,Integer.MAX_VALUE);
-        tabs.add(scroll(display),"Display");tabs.add(scroll(appearance),"Style");tabs.add(scroll(rules),"Rules and imports");tabs.add(scroll(alerts),"Alerts");add(tabs,BorderLayout.CENTER);
-        page.addActionListener(e->pages.show(tabs,(String)page.getSelectedItem()));
+        disclosure(display,"Style…",appearance);
+        disclosure(display,"Alerts…",alerts);
+        page.addTab("Loot",scroll(display));page.addTab("Rules",scroll(rules));page.addTab("Tools",scroll(tools));
+        add(page,BorderLayout.CENTER);
         syncing=true;refreshers.forEach(Runnable::run);syncing=false;
         timer=new javax.swing.Timer(500,e->{ if(isShowing()) { syncing=true; refreshers.forEach(Runnable::run); syncing=false; status.setText(html(icons.filters.status())); ground.setText(html(loot.status()));ruleGround.setText(html(loot.status())); }}); timer.start();
+    }
+    private static JPanel disclosure(JPanel parent,String title) {
+        JPanel content=column();disclosure(parent,title,content);return content;
+    }
+    private static void disclosure(JPanel parent,String title,JPanel content) {
+        JPanel group=new JPanel(new BorderLayout(0,3));
+        JButton toggle=new JButton("▶ "+title);toggle.setHorizontalAlignment(SwingConstants.LEFT);
+        toggle.setMargin(new Insets(5,4,5,4));content.setVisible(false);
+        toggle.addActionListener(e->{boolean open=!content.isVisible();content.setVisible(open);toggle.setText((open?"▼ ":"▶ ")+title);group.revalidate();group.repaint();});
+        group.add(toggle,BorderLayout.NORTH);group.add(content,BorderLayout.CENTER);parent.add(group);
     }
     private void copyLegacy()
     {

@@ -42,7 +42,7 @@ public class ReleaseNotesNoticeTest
         notice.start(); flush();
         ArgumentCaptor<QueuedMessage> messages=ArgumentCaptor.forClass(QueuedMessage.class);
         verify(chat,times(6)).queue(messages.capture());
-        assertTrue(messages.getAllValues().get(1).getRuneLiteFormattedMessage().contains("Conditional menu hiding"));
+        assertTrue(messages.getAllValues().get(1).getRuneLiteFormattedMessage().contains("Simple Loot, Rules and Tools tabs"));
         assertEquals(ReleaseNotesNotice.RELEASE,seen);
         notice.onGameStateChanged(loggedIn()); flush();
         notice.stop(); notice.start(); flush();

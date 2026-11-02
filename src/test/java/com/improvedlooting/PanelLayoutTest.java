@@ -5,6 +5,7 @@ import javax.swing.*;
 import javax.imageio.ImageIO;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
+import static org.junit.Assert.*;
 public class PanelLayoutTest
 {
     @Test public void sidePanelFitsAndDisposes() throws Exception {
@@ -16,10 +17,21 @@ public class PanelLayoutTest
             try{ImageIO.write(image,"png",new java.io.File("build/panel-preview.png"));}catch(Exception e){throw new AssertionError(e);}
             panel.setSize(263,1100);layout(panel);image=new BufferedImage(263,1100,BufferedImage.TYPE_INT_RGB);g=image.createGraphics();panel.printAll(g);g.dispose();
             try{ImageIO.write(image,"png",new java.io.File("build/visibility-panel-preview.png"));}catch(Exception e){throw new AssertionError(e);}
-            panel.page.setSelectedItem("Style");
+            assertEquals(3,panel.page.getTabCount());
+            assertEquals("Loot",panel.page.getTitleAt(0));assertEquals("Rules",panel.page.getTitleAt(1));assertEquals("Tools",panel.page.getTitleAt(2));
+            assertEquals(1,panel.page.getTabRunCount());
+            JButton style=button(panel,"Style…");
+            assertFalse(((Container)style.getParent()).getComponent(1).isVisible());
+            style.doClick();assertTrue(((Container)style.getParent()).getComponent(1).isVisible());
             panel.setSize(263,1050);layout(panel);image=new BufferedImage(263,1050,BufferedImage.TYPE_INT_RGB);g=image.createGraphics();panel.printAll(g);g.dispose();panel.close();
             try{ImageIO.write(image,"png",new java.io.File("build/card-appearance-preview.png"));}catch(Exception e){throw new AssertionError(e);}
         });
+    }
+    private static JButton button(Container c,String label) {
+        for(Component child:c.getComponents()) {
+            if(child instanceof JButton && ((JButton)child).getText().contains(label)) return (JButton)child;
+            if(child instanceof Container) {JButton b=button((Container)child,label);if(b!=null)return b;}
+        }return null;
     }
     private static void layout(Container c) {c.doLayout();for(Component child:c.getComponents())if(child instanceof Container)layout((Container)child);}
 }
