@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.*;
 import java.util.function.BooleanSupplier;
 import javax.swing.*;
 import net.runelite.client.util.Filepath;
+import net.runelite.client.config.ConfigProfile;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -43,7 +44,7 @@ public class LootProfilesEditorTest {
     }
 
     @Test public void fileImportPreservesCustomAssetsAcrossProfilesAndUndo() throws Exception {
-        LootProfiles source=LootProfilesTest.profiles();Map<String,String> original=new HashMap<>();bind(source,original);
+        LootProfiles source=LootProfilesTest.profiles();ConfigProfile sourceProfile=profile(11);when(source.icons.configs.getProfile()).thenReturn(sourceProfile);Map<String,String> original=new HashMap<>();bind(source,original);
         original.put("lootSounds","true");original.put("priceTiersEnabled","true");original.put("alertVolume","37");
         original.put("groundStyle","CARDS");original.put("minimumLabelValue","25000");
         PriceTiers.Setup tiers=PriceTiers.defaults();tiers.tiers[6].sound=PriceTiers.Sound.CUSTOM;
@@ -57,9 +58,14 @@ public class LootProfilesEditorTest {
         picture.image=IconImages.encode(new BufferedImage(2,2,BufferedImage.TYPE_INT_ARGB));
         original.put(ItemIcons.KEY,source.icons.gson.toJson(Collections.singletonList(picture)));String exported=source.export();
         LootProfiles target=LootProfilesTest.profiles();Map<String,String> destination=new HashMap<>();destination.put("alertVolume","10");bind(target,destination);String before=target.export();
-        Filepath file=mock(Filepath.class);when(file.openBufferedReader()).thenAnswer(i->{assertFalse(SwingUtilities.isEventDispatchThread());return new BufferedReader(new StringReader(exported));});
+        AtomicReference<ConfigProfile> current=new AtomicReference<>(profile(22));
+        when(target.icons.configs.getProfile()).thenAnswer(i->current.get());
+        Filepath file=mock(Filepath.class);when(file.openBufferedReader()).thenAnswer(i->{assertFalse(SwingUtilities.isEventDispatchThread());current.set(profile(22));return new BufferedReader(new StringReader(exported));});
         Ui ui=new Ui(target);ui.ready();SwingUtilities.invokeAndWait(()->ui.editor.importFrom(file));ui.ready();
-        assertEquals(before,target.export());ui.click("Apply reviewed setup");assertEquals(exported,target.export());assertEquals(before,target.undo());
+        assertEquals(before,target.export());
+        SwingUtilities.invokeAndWait(()->assertTrue(button(ui.root,"Apply reviewed setup").isEnabled()));
+        current.set(profile(22)); // Another ordinary background profile refresh after review.
+        ui.click("Apply reviewed setup");assertEquals(exported,target.export());assertEquals(before,target.undo());
         ui.click("Undo last change");ui.ready();assertEquals(exported,target.export());ui.click("Apply reviewed setup");
         assertEquals(before,target.export());assertEquals(exported,source.export());ui.close();
     }
@@ -105,6 +111,8 @@ public class LootProfilesEditorTest {
     @Test public void oversizedFileIsRejectedBeforeParsing()throws Exception {
         try{LootProfilesEditor.read(new StringReader("x".repeat(24_000_001)));fail();}catch(IllegalArgumentException expected){assertTrue(expected.getMessage().contains("24 MB"));}
     }
+
+    private static ConfigProfile profile(long id){ConfigProfile p=mock(ConfigProfile.class);when(p.getId()).thenReturn(id);return p;}
 
     private static final class Ui {
         LootProfilesEditor editor;JPanel root;

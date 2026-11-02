@@ -27,7 +27,7 @@ class FilterIcons {
  private volatile Prepared current;
  private String loaded;
  private long generation;
- private Object profile;
+ private Long profile;
  private volatile String loadStatus="No imported filter active";
  static String compress(String source) {
   try { ByteArrayOutputStream out=new ByteArrayOutputStream(); try(GZIPOutputStream gzip=new GZIPOutputStream(out)) { gzip.write(source.getBytes(StandardCharsets.UTF_8)); } return Base64.getEncoder().encodeToString(out.toByteArray()); }
@@ -72,7 +72,7 @@ class FilterIcons {
  }
  synchronized void reload() {
   String raw=configs.getConfiguration(ImprovedLootingConfig.GROUP,KEY);
-  Object nextProfile=configs.getProfile();
+  Long nextProfile=ProfileIdentity.current(configs);
   if(current!=null && Objects.equals(raw,loaded) && Objects.equals(profile,nextProfile)) return;
   profile=nextProfile; long token=++generation;
   loaded=raw; current=null;
@@ -84,11 +84,11 @@ class FilterIcons {
   executor.execute(() -> {
    Prepared next=null; String status="No imported filter active";
    try { next=parse(raw); } catch(IllegalArgumentException e) { status="Imported filter could not load; re-import its backup."; }
-   synchronized(FilterIcons.this) { if(token==generation && Objects.equals(nextProfile,configs.getProfile())) { current=next; loadStatus=status; } }
+   synchronized(FilterIcons.this) { if(token==generation && Objects.equals(nextProfile,ProfileIdentity.current(configs))) { current=next; loadStatus=status; } }
   });
  }
  synchronized void save(Prepared p) {
-  generation++; profile=configs.getProfile();
+  generation++; profile=ProfileIdentity.current(configs);
   String before=configs.getConfiguration(ImprovedLootingConfig.GROUP,KEY);
   configs.setConfiguration(ImprovedLootingConfig.GROUP,BACKUP,before==null ? "" : before);
   String raw=p==null ? "" : gson.toJson(p.bundle);

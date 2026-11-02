@@ -12,7 +12,7 @@ import net.runelite.client.util.Filepath;
 final class LootProfilesEditor
 {
     private final LootProfiles profiles;
-    private final Object profile;
+    private final Long profile;
     private final JComboBox<String> saved=new JComboBox<>();
     private final JTextField name=new JTextField(22);
     private final JComboBox<String> starter=new JComboBox<>(new String[]{"Show all loot", "Valuable loot", "Ground Items hide / highlight lists"});
@@ -32,7 +32,7 @@ final class LootProfilesEditor
         Review(LootProfiles.Setup setup,LootProfiles.Setup before,String beforeJson,String label){this.setup=setup;this.before=before;this.beforeJson=beforeJson;this.label=label;}
     }
 
-    LootProfilesEditor(LootProfiles profiles){this.profiles=profiles;profile=profiles.icons.configs.getProfile();}
+    LootProfilesEditor(LootProfiles profiles){this.profiles=profiles;profile=ProfileIdentity.current(profiles.icons.configs);}
     void open(Component owner)
     {
         if(dialog!=null&&dialog.isDisplayable()){dialog.toFront();return;}
@@ -142,7 +142,7 @@ final class LootProfilesEditor
     private boolean valid()
     {
         if(closed)return false;
-        if(!Objects.equals(profile,profiles.icons.configs.getProfile())){pending=null;apply.setEnabled(false);status.setText("Profile changed. Close and reopen Settings in the intended profile.");return false;}
+        if(!Objects.equals(profile,ProfileIdentity.current(profiles.icons.configs))){pending=null;apply.setEnabled(false);status.setText("Profile changed. Close and reopen Settings in the intended profile.");return false;}
         return true;
     }
     private <T> void background(String message,Callable<T> work,Consumer<T> done)

@@ -48,14 +48,14 @@ final class LootProfiles
             if(key.equals(LootPreferences.KEY))preferences.parse(value);
         }
     }
-    void applyValidated(Setup s,Object expectedProfile,String expectedCurrent)
+    void applyValidated(Setup s,Long expectedProfile,String expectedCurrent)
     {
-        if(!Objects.equals(expectedProfile,icons.configs.getProfile())||!Objects.equals(expectedCurrent,export()))throw new IllegalArgumentException("Profile or settings changed. Preview the setup again.");
+        if(!Objects.equals(expectedProfile,ProfileIdentity.current(icons.configs))||!Objects.equals(expectedCurrent,export()))throw new IllegalArgumentException("Profile or settings changed. Preview the setup again.");
         writeSetup(s,expectedCurrent);
     }
-    void applyValidated(Setup s,Object expectedProfile,Setup before,String beforeJson)
+    void applyValidated(Setup s,Long expectedProfile,Setup before,String beforeJson)
     {
-        if(!Objects.equals(expectedProfile,icons.configs.getProfile())||!Objects.equals(before.settings,capture().settings))throw new IllegalArgumentException("Profile or settings changed. Review the setup again.");
+        if(!Objects.equals(expectedProfile,ProfileIdentity.current(icons.configs))||!Objects.equals(before.settings,capture().settings))throw new IllegalArgumentException("Profile or settings changed. Review the setup again.");
         writeSetup(s,beforeJson);
     }
     private void writeSetup(Setup s,String expectedCurrent)

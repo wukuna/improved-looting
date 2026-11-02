@@ -5,6 +5,7 @@ import com.improvedlooting.rs2f.model.ItemFacts;
 import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.config.ConfigProfile;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -37,6 +38,22 @@ public class LootProfilesTest
     @Test public void blankConfigurationLoadsDefaultAndUndoRestoresDefault()
     {
         LootProfiles p=profiles();p.icons.filters.reload();assertNotNull(p.icons.filters.snapshot());assertFalse(p.icons.filters.snapshot().program.evaluate(ItemFacts.builder().name("Coins").id(995).quantity(1).build()).isHidden());p.icons.filters.save(null);assertNotNull(p.icons.filters.snapshot());
+    }
+    @Test public void importedFilterFinishesAcrossRefreshButNotARealProfileSwitch()
+    {
+        for(long nextId:new long[]{42,99})
+        {
+            LootProfiles p=profiles();ConfigProfile first=mock(ConfigProfile.class),next=mock(ConfigProfile.class);
+            when(first.getId()).thenReturn(42L);when(next.getId()).thenReturn(nextId);
+            when(p.icons.configs.getProfile()).thenReturn(first);
+            String raw=p.parse(p.starter(true)).settings.get(FilterIcons.KEY);
+            when(p.icons.configs.getConfiguration(ImprovedLootingConfig.GROUP,FilterIcons.KEY)).thenReturn(raw);
+            List<Runnable> jobs=new ArrayList<>();
+            doAnswer(i->{jobs.add(i.getArgument(0));return null;}).when(p.icons.filters.executor).execute(any(Runnable.class));
+            p.icons.filters.reload();assertNull(p.icons.filters.snapshot());
+            when(p.icons.configs.getProfile()).thenReturn(next);jobs.get(0).run();
+            if(nextId==42)assertNotNull(p.icons.filters.snapshot());else assertNull(p.icons.filters.snapshot());
+        }
     }
     @Test public void inspectorShowsRulePriorityOverrideAndUnknownFacts()
     {
