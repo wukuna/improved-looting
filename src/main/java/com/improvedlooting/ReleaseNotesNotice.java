@@ -19,14 +19,11 @@ import net.runelite.client.events.ProfileChanged;
 @Singleton
 final class ReleaseNotesNotice
 {
-    static final String RELEASE = "2026-11-01-settings-and-tier-sounds";
+    static final String RELEASE = "2026-11-02-tier-sound-save";
     static final String SEEN_KEY = "releaseNotesShown";
-    private static final String[] RECENT = {
-        "Tools → Settings combines file Export settings, Import settings, saved setups and starters, with background processing and Undo.",
-        "Drop tiers & sounds keeps tier editing, sound switches, volume and cooldown together on the Loot tab.",
-        "Simple Loot, Rules and Tools tabs keep the sidebar compact; expand label details, visibility, pile order, style and alerts as needed.",
-        "Conditional menu hiding: item choices and name/value/ownership/region rules override the global default for hidden tags.",
-        "Alt-click hide/show is more reliable during redraws; highlighted names and color strips keep their highlight color instead of tier effects.",
+    private static final String[] UPDATES = {
+        "Fix saving multiple custom tier sounds without false profile-change warnings.",
+        "Show release changes together in one compact update notice."
     };
 
     @Inject private Client client;
@@ -52,8 +49,7 @@ final class ReleaseNotesNotice
         if (client.getGameState() != GameState.LOGGED_IN
             || RELEASE.equals(configManager.getConfiguration(ImprovedLootingConfig.GROUP, SEEN_KEY)))
             return;
-        send("Recent updates (newest first):");
-        for (int i = 0; i < Math.min(5, RECENT.length); i++) send((i + 1) + ". " + RECENT[i]);
+        send("Updates:<br>* " + String.join("<br>* ", UPDATES));
         configManager.setConfiguration(ImprovedLootingConfig.GROUP, SEEN_KEY, RELEASE);
     }
 
@@ -61,7 +57,7 @@ final class ReleaseNotesNotice
     {
         String message = new ChatMessageBuilder().append(ChatColorType.NORMAL).append("[")
             .append(ChatColorType.HIGHLIGHT).append("Improved Looting")
-            .append(ChatColorType.NORMAL).append("] ").append(text).build();
+            .append(ChatColorType.NORMAL).append("] ").build() + text;
         chat.queue(QueuedMessage.builder().type(ChatMessageType.CONSOLE)
             .runeLiteFormattedMessage(message).build());
     }
