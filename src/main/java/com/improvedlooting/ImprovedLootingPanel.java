@@ -26,13 +26,14 @@ final class ImprovedLootingPanel extends PluginPanel
         this.icons=icons; this.migration=migration;
         setLayout(new BorderLayout(0,10)); setBorder(BorderFactory.createEmptyBorder(10,8,10,8));
         JPanel header=new JPanel(new BorderLayout(0,8));header.add(help("<b>Improved Looting</b><br>This plugin is currently in Beta mode"),BorderLayout.NORTH);add(header,BorderLayout.NORTH);
-        JPanel rules=column(),display=column(),appearance=column(),alerts=column(),tools=column();
+        JPanel rules=column(),display=column(),appearance=column(),tiers=column(),alerts=column(),tools=column();
         JLabel status=help(icons.filters.status()); rules.add(status);
         JLabel ruleGround=help(loot.status());rules.add(ruleGround);
         button(rules,"Nearby loot / inspector",()->{if(browser!=null)browser.close();browser=new LootBrowser(loot,icons,thread,preferences);browser.open(this);});
-        button(tools,"Presets / full backup",()->{if(presets!=null)presets.close();presets=new LootProfilesEditor(profiles);presets.open(this);});
+        section(tools,"Settings and assets");
+        hint(button(tools,"Settings…",()->openProfiles(profiles)),"Export or import your complete setup, manage saved setups and choose a starter in one window.");
         button(rules,"Edit rules",()->{ if(editor!=null && editor.isOpen()) { editor.focus(); return; } editor=new FilterEditor(icons); editor.open(this); });
-        button(tools,"Import / assets / backups",()->{ if(assets!=null) assets.close(); assets=new ItemIconEditor(icons); assets.open(this); });
+        button(tools,"Icons and filter files…",()->{ if(assets!=null) assets.close(); assets=new ItemIconEditor(icons); assets.open(this); });
         hint(button(tools,"Copy Right-Clicks setup",this::copyLegacy),"Copy your filter and images here; the original setup is preserved.");
         hint(toggle(display,"Show ground labels","lootOverlay",config::lootOverlay),"Show this plugin's ground display. Disable overlapping ground labels in other plugins.");
         JLabel ground=help(loot.status()); display.add(ground);
@@ -85,10 +86,12 @@ final class ImprovedLootingPanel extends PluginPanel
         hint(number(cardStyle,"Rows before expanding (0: all)","cardRows",config::cardRows,0,20),"Rows shown per pile; hover to expand. 0 shows all rows that fit.");
         JPanel labelStyle=column();section(labelStyle,"Labels only");appearance.add(labelStyle);
         hint(number(labelStyle,"Picture size (pixels)","iconSize",config::iconSize,12,96),"Labels mode only. Rules select the picture, border and background.");
-        section(appearance,"Price tiers and beams");
-        hint(toggle(appearance,"Loot beams","lootBeams",config::lootBeams),"Show beams enabled by your rules or price tiers.");
-        button(appearance,"Edit seven price tiers",()->{if(tierEditor!=null)tierEditor.close();tierEditor=new PriceTierEditor(icons.tiers,icons.audio);tierEditor.open(this);});
-        hint(toggle(appearance,"Tier animations and sounds","priceTiersEnabled",config::priceTiersEnabled),"Adds tier effects. Colors, bold and beams work independently. Audio also needs Drop sounds under Alerts.");
+        hint(button(tiers,"Edit tiers and sounds…",()->{if(tierEditor!=null)tierEditor.close();tierEditor=new PriceTierEditor(icons.tiers,icons.audio);tierEditor.open(this);}),"Set all seven value ranges, colors, beams and per-tier sounds together. Choose or preview a custom sound beside its tier.");
+        hint(toggle(tiers,"Loot beams","lootBeams",config::lootBeams),"Show beams enabled by your rules or price tiers.");
+        hint(toggle(tiers,"Tier animations and sounds","priceTiersEnabled",config::priceTiersEnabled),"Adds tier effects. Colors, bold and beams work independently. Tier audio needs both this switch and Drop sounds below.");
+        hint(toggle(tiers,"Drop sounds","lootSounds",config::lootSounds),"Play sounds requested by rules or enabled tiers for new drops. Choose each tier's sound in Edit tiers and sounds above.");
+        number(tiers,"Sound volume (%)","alertVolume",config::alertVolume,0,100);
+        number(tiers,"Sound cooldown (s)","soundCooldown",config::soundCooldown,0,60);
         section(rules,"Menu integration");
         hint(toggle(rules,"Connect menu icons","shareMenuIcons",config::shareMenuIcons),"Share rule icons, visibility and colors with compatible Improved Right-Clicks. Alt-click hiding and minimum value stay local to ground labels.");
         refreshers.add(()->{
@@ -103,19 +106,21 @@ final class ImprovedLootingPanel extends PluginPanel
             backgroundColor.setEnabled(cards && config.cardBackground());resetColor.setEnabled(cards && config.cardBackground() && config.cardBackgroundColor()!=null);
         });
         hint(toggle(alerts,"Drop notifications","lootNotifications",config::lootNotifications),"Notify for new drops requested by rules. Existing piles stay silent.");
-        hint(toggle(alerts,"Drop sounds","lootSounds",config::lootSounds),"Play sounds requested by rules or enabled tiers for new drops. Import custom audio through Assets.");
         toggle(alerts,"Notification cards","notificationCards",config::notificationCards);
-        number(alerts,"Sound volume (%)","alertVolume",config::alertVolume,0,100);
-        number(alerts,"Sound cooldown (s)","soundCooldown",config::soundCooldown,0,60);
         toggle(alerts,"Despawn warnings","despawnWarnings",config::despawnWarnings);
         number(alerts,"Warning time (s)","despawnSeconds",config::despawnSeconds,1,120);
         number(alerts,"Minimum stack value","despawnMinimum",config::despawnMinimum,0,Integer.MAX_VALUE);
         disclosure(display,"Style…",appearance);
+        disclosure(display,"Drop tiers & sounds…",tiers);
         disclosure(display,"Alerts…",alerts);
         page.addTab("Loot",scroll(display));page.addTab("Rules",scroll(rules));page.addTab("Tools",scroll(tools));
         add(page,BorderLayout.CENTER);
         syncing=true;refreshers.forEach(Runnable::run);syncing=false;
         timer=new javax.swing.Timer(500,e->{ if(isShowing()) { syncing=true; refreshers.forEach(Runnable::run); syncing=false; status.setText(html(icons.filters.status())); ground.setText(html(loot.status()));ruleGround.setText(html(loot.status())); }}); timer.start();
+    }
+    private void openProfiles(LootProfiles profiles) {
+        if(presets!=null&&presets.isOpen()){presets.open(this);return;}
+        presets=new LootProfilesEditor(profiles);presets.open(this);
     }
     private static JPanel disclosure(JPanel parent,String title) {
         JPanel content=column();disclosure(parent,title,content);return content;

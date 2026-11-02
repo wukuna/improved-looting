@@ -24,7 +24,7 @@ final class PriceTierEditor
     void open(Component owner)
     {
         JPanel root=build(owner);if(root==null)return;
-        dialog=new JDialog(SwingUtilities.getWindowAncestor(owner),"Price tiers — Improved Looting",Dialog.ModalityType.MODELESS);dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);dialog.addWindowListener(new java.awt.event.WindowAdapter(){public void windowClosed(java.awt.event.WindowEvent e){closed=true;}});dialog.setContentPane(root);dialog.setMinimumSize(new Dimension(880,470));dialog.setSize(1200,580);dialog.setLocationRelativeTo(owner);dialog.setVisible(true);
+        dialog=new JDialog(SwingUtilities.getWindowAncestor(owner),"Drop tiers and sounds — Improved Looting",Dialog.ModalityType.MODELESS);dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);dialog.addWindowListener(new java.awt.event.WindowAdapter(){public void windowClosed(java.awt.event.WindowEvent e){closed=true;}});dialog.setContentPane(root);dialog.setMinimumSize(new Dimension(880,470));dialog.setSize(1200,580);dialog.setLocationRelativeTo(owner);dialog.setVisible(true);
     }
     JPanel build(Component owner)
     {
@@ -33,7 +33,7 @@ final class PriceTierEditor
         Object profile=store.configs.getProfile();String before=store.raw();
         PriceTiers.Setup draft=PriceTiers.copy(current.setup);
         JPanel root=new JPanel(new BorderLayout(10,10));root.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-        JPanel heading=new JPanel(new BorderLayout(8,8));heading.add(new JLabel("<html><b>Seven price tiers</b><br>Total stack GE value. Beam adds a tier-coloured beam without a filter rule.<br>The Loot beams master switch must be on. Unchecked tiers can still use explicit rule beams.</html>"),BorderLayout.CENTER);
+        JPanel heading=new JPanel(new BorderLayout(8,8));heading.add(new JLabel("<html><b>Seven drop tiers and their sounds</b><br>Total stack GE value. Set each tier's sound beside its color and beam.<br>In Loot → Drop tiers &amp; sounds, enable Tier animations and sounds + Drop sounds for audio.<br>Beams need Loot beams enabled; unchecked tiers can still use explicit rule beams.</html>"),BorderLayout.CENTER);
         JPanel speed=new JPanel(new FlowLayout());speed.add(new JLabel("Cycle seconds"));JSpinner seconds=new JSpinner(new SpinnerNumberModel(draft.seconds,2,30,1));speed.add(seconds);heading.add(speed,BorderLayout.EAST);root.add(heading,BorderLayout.NORTH);
         JPanel rows=new JPanel(new GridBagLayout());GridBagConstraints c=new GridBagConstraints();c.insets=new Insets(5,5,5,5);c.fill=GridBagConstraints.HORIZONTAL;c.weightx=1;
         String[] headers={"Tier / GE range","Minimum gp","Text effect","Color","Bold","Beam","Sound","Custom file"};

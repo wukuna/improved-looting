@@ -18,7 +18,8 @@ final class LootProfiles
     @Inject LootPreferences preferences;
     static Set<String> keys(){Set<String> keys=new LinkedHashSet<>(Arrays.asList(BOOLEAN_KEYS));keys.addAll(NUMBERS.keySet());Collections.addAll(keys,"cardTheme","cardBackgroundColor","untradeableColor","priceDisplay","timerDisplay","groundStyle","labelOrder","labelAlignment",FilterIcons.KEY,ItemIcons.KEY,PriceTiers.KEY,LootPreferences.KEY);return keys;}
     Setup capture(){Setup s=new Setup();for(String key:keys())s.settings.put(key,icons.configs.getConfiguration(ImprovedLootingConfig.GROUP,key));return s;}
-    String export(){return icons.gson.toJson(capture());}
+    String export(){return encode(capture());}
+    String encode(Setup setup){String raw=icons.gson.toJson(setup);if(raw.length()>24000000)throw new IllegalArgumentException("Setup exceeds 24 MB");return raw;}
     Setup parse(String raw)
     {
         if(raw==null||raw.length()>24000000)throw new IllegalArgumentException("Setup exceeds 24 MB");
@@ -50,22 +51,40 @@ final class LootProfiles
     void applyValidated(Setup s,Object expectedProfile,String expectedCurrent)
     {
         if(!Objects.equals(expectedProfile,icons.configs.getProfile())||!Objects.equals(expectedCurrent,export()))throw new IllegalArgumentException("Profile or settings changed. Preview the setup again.");
+        writeSetup(s,expectedCurrent);
+    }
+    void applyValidated(Setup s,Object expectedProfile,Setup before,String beforeJson)
+    {
+        if(!Objects.equals(expectedProfile,icons.configs.getProfile())||!Objects.equals(before.settings,capture().settings))throw new IllegalArgumentException("Profile or settings changed. Review the setup again.");
+        writeSetup(s,beforeJson);
+    }
+    private void writeSetup(Setup s,String expectedCurrent)
+    {
         icons.configs.setConfiguration(ImprovedLootingConfig.GROUP,UNDO,expectedCurrent);
         for(String key:keys()){String value=s.settings.get(key);if(value==null)icons.configs.unsetConfiguration(ImprovedLootingConfig.GROUP,key);else icons.configs.setConfiguration(ImprovedLootingConfig.GROUP,key,value);}
     }
     String undo(){return icons.configs.getConfiguration(ImprovedLootingConfig.GROUP,UNDO);}
     Library library()
     {
-        String raw=icons.configs.getConfiguration(ImprovedLootingConfig.GROUP,SAVED);if(raw==null||raw.isBlank())return new Library();
+        return library(icons.configs.getConfiguration(ImprovedLootingConfig.GROUP,SAVED));
+    }
+    Library library(String raw)
+    {
+        if(raw==null||raw.isBlank())return new Library();
         if(raw.length()>24000000)throw new IllegalArgumentException("Preset library exceeds 24 MB");
         try{Library l=icons.gson.fromJson(raw,Library.class);if(l==null||l.version!=1||l.presets==null||l.presets.size()>12)throw new IllegalArgumentException("Invalid preset library");for(String name:l.presets.keySet())if(!LootPreferences.validLabel(name,60)||name.isBlank())throw new IllegalArgumentException("Invalid preset name");return l;}catch(com.google.gson.JsonParseException e){throw new IllegalArgumentException("Invalid preset library",e);}
     }
     void save(String name){name=name.trim();if(!LootPreferences.validLabel(name,60)||name.isBlank())throw new IllegalArgumentException("Use a name of 1–60 characters");Library l=library();l.presets.put(name,capture());persist(l);}
     void remove(String name){Library l=library();l.presets.remove(name);persist(l);}
-    private void persist(Library l){String raw=icons.gson.toJson(l);if(raw.length()>24000000||l.presets.size()>12)throw new IllegalArgumentException("Keep at most 12 presets and 24 MB total");icons.configs.setConfiguration(ImprovedLootingConfig.GROUP,SAVED,raw);}
+    String encodeLibrary(Library l){String raw=icons.gson.toJson(l);if(raw.length()>24000000||l.presets.size()>12)throw new IllegalArgumentException("Keep at most 12 saved setups and 24 MB total");return raw;}
+    private void persist(Library l){icons.configs.setConfiguration(ImprovedLootingConfig.GROUP,SAVED,encodeLibrary(l));}
     String starter(boolean valuable)
     {
-        Setup s=capture();FilterIcons.Bundle b=new FilterIcons.Bundle();b.compressedSource=FilterIcons.compress(valuable?
+        return starter(valuable,capture());
+    }
+    String starter(boolean valuable,Setup s)
+    {
+        FilterIcons.Bundle b=new FilterIcons.Bundle();b.compressedSource=FilterIcons.compress(valuable?
             "rule(gevalue:>=100000) {textColor=\"#ffcf60\"; icon=CurrentItem(); showValue=true; showDespawn=true; showLootbeam=true; notify=true;}\nrule(gevalue:>=1000) {showValue=true; showDespawn=true;}\nrule(true) {hideOverlay=true;}":
             "apply(true) {showValue=true; showDespawn=true; icon=CurrentItem();}\nrule(gevalue:>=100000) {textColor=\"#ffcf60\"; showLootbeam=true;}");
         s.settings.put(FilterIcons.KEY,icons.gson.toJson(b));s.settings.put(LootPreferences.KEY,null);return icons.gson.toJson(s);
@@ -73,11 +92,15 @@ final class LootProfiles
     String groundItemsPreview()
     {
         String highlights=icons.configs.getConfiguration("grounditems","highlightedItems"),hidden=icons.configs.getConfiguration("grounditems","hiddenItems");
+        return groundItemsPreview(capture(),highlights,hidden);
+    }
+    String groundItemsPreview(Setup s,String highlights,String hidden)
+    {
         if((highlights==null||highlights.isBlank())&&(hidden==null||hidden.isBlank()))throw new IllegalArgumentException("No Ground Items highlight / hide lists found in this profile");
         StringBuilder rules=new StringBuilder("apply(true) {showValue=true; showDespawn=true;}\n");
         appendNames(rules,highlights,"hidden=false; hideOverlay=false; textColor=\"#ffcf60\"; showLootbeam=true;");
         appendNames(rules,hidden,"hidden=true; hideOverlay=true;");
-        Setup s=capture();FilterIcons.Bundle bundle=new FilterIcons.Bundle();bundle.compressedSource=FilterIcons.compress(rules.toString());s.settings.put(FilterIcons.KEY,icons.gson.toJson(bundle));return icons.gson.toJson(s);
+        FilterIcons.Bundle bundle=new FilterIcons.Bundle();bundle.compressedSource=FilterIcons.compress(rules.toString());s.settings.put(FilterIcons.KEY,icons.gson.toJson(bundle));return icons.gson.toJson(s);
     }
     private static void appendNames(StringBuilder rules,String names,String display)
     {

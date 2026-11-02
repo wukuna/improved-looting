@@ -19,14 +19,14 @@ import net.runelite.client.events.ProfileChanged;
 @Singleton
 final class ReleaseNotesNotice
 {
-    static final String RELEASE = "2026-11-01-label-input-colors";
+    static final String RELEASE = "2026-11-01-settings-and-tier-sounds";
     static final String SEEN_KEY = "releaseNotesShown";
     private static final String[] RECENT = {
+        "Tools → Settings combines file Export settings, Import settings, saved setups and starters, with background processing and Undo.",
+        "Drop tiers & sounds keeps tier editing, sound switches, volume and cooldown together on the Loot tab.",
         "Simple Loot, Rules and Tools tabs keep the sidebar compact; expand label details, visibility, pile order, style and alerts as needed.",
         "Conditional menu hiding: item choices and name/value/ownership/region rules override the global default for hidden tags.",
         "Alt-click hide/show is more reliable during redraws; highlighted names and color strips keep their highlight color instead of tier effects.",
-        "Prioritize valuable loot now also orders left-click Take; fresh ensouled heads use their normal tradeable tier.",
-        "Display now offers Only show owned drops, an untradeable minimum-value exception, and an untradeable color picker defaulting to red.",
     };
 
     @Inject private Client client;
