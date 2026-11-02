@@ -61,7 +61,23 @@ final class GroundLoot
         Entry(Tile tile, TileItem item) { this.tile = tile; this.item = item; }
     }
     Collection<Entry> entries() { return ordered; }
-    private Map<Integer,Integer> ranks(Tile tile) { return menuRanks.computeIfAbsent(tile,t -> LootPileOrder.ranks(t,filters,config)); }
+    private Map<Integer,Integer> ranks(Tile tile) { return menuRanks.computeIfAbsent(tile,this::rankPile); }
+    private Map<Integer,Integer> rankPile(Tile tile)
+    {
+        if(tile==null || tile.getGroundItems()==null)return Collections.emptyMap();
+        List<Entry> pile=new ArrayList<>();
+        for(TileItem item:tile.getGroundItems()) {
+            Entry entry=new Entry(tile,item),cached=entries.get(item);
+            entry.facts=filters.facts(tile,item);entry.display=resolved(tile,item);
+            if(entry.display==null)return Collections.emptyMap();
+            entry.source=cached==null?null:cached.source;
+            pile.add(entry);
+        }
+        // Share label grouping and visibility, including minimum stack value and
+        // Alt-click overrides. Fresh drops can have menus before their first tick.
+        group(pile);
+        return LootPileOrder.ranks(pile,this::labelHidden);
+    }
     int menuRank(Tile tile, int id, int fallback) { return ranks(tile).getOrDefault(id,fallback); }
     // A menu entry cannot distinguish duplicate copies. Keep it if any copy is
     // visible or unresolved, so filtering never strands a visible drop.
@@ -146,6 +162,7 @@ final class GroundLoot
     // editing one label cannot blank every pile until the next game tick.
     void refreshOverrides()
     {
+        menuRanks.clear();
         if(!running || prepared==null)return;
         applyOverrides();
         publishRows();
@@ -266,6 +283,19 @@ final class GroundLoot
         ItemIcons.Assignment manual = icons.find(e.item.getId());
         return manual == null ? image(e.display.getIcon(), e.item.getId()) : icons.image(manual, e.item.getId());
     }
+    private void group(List<Entry> pile)
+    {
+        Map<List<Object>, Entry> groups = new HashMap<>();boolean group=config.groupStacks();
+        for(Entry e : pile)
+        {
+            e.grouped=false; e.renderQuantity=e.facts.getQuantity(); e.renderDespawn=e.item.getDespawnTime();e.renderSpawnTick=e.spawnTick;
+            if(!group) continue;
+            List<Object> key=Arrays.asList(e.tile,e.item.getId(),e.display,e.source,LootDisplayOptions.ownershipHidden(config,e));
+            Entry lead=groups.putIfAbsent(key,e);
+            if(lead!=null) {e.grouped=true;lead.renderQuantity+=e.renderQuantity;
+                if(e.renderDespawn>0 && (lead.renderDespawn<=0 || e.renderDespawn<lead.renderDespawn)){lead.renderDespawn=e.renderDespawn;lead.renderSpawnTick=e.spawnTick;}}
+        }
+    }
     private void publishRows()
     {
         conditionalMenuHiding=false;
@@ -283,18 +313,9 @@ final class GroundLoot
             : order == ImprovedLootingConfig.LabelOrder.TIME ? Comparator.comparingInt(e -> e.item.getDespawnTime() <= 0 ? Integer.MAX_VALUE : e.item.getDespawnTime())
             : Comparator.<Entry>comparingLong(e -> PriceTiers.value(e.facts.getGePrice(), e.facts.getQuantity())).reversed();
         nearby.sort(sorting.thenComparing(byName).thenComparingLong(e -> e.key)); ordered = nearby;
-        Map<List<Object>, Entry> groups = new HashMap<>();boolean group=config.groupStacks();
-        for(Entry e : nearby)
-        {
-            e.grouped=false; e.renderQuantity=e.facts.getQuantity(); e.renderDespawn=e.item.getDespawnTime();e.renderSpawnTick=e.spawnTick;
-            if(!group) continue;
-            List<Object> key=Arrays.asList(e.tile,e.item.getId(),e.display,e.source,LootDisplayOptions.ownershipHidden(config,e));
-            Entry lead=groups.putIfAbsent(key,e);
-            if(lead!=null) {e.grouped=true;lead.renderQuantity+=e.renderQuantity;
-                if(e.renderDespawn>0 && (lead.renderDespawn<=0 || e.renderDespawn<lead.renderDespawn)){lead.renderDespawn=e.renderDespawn;lead.renderSpawnTick=e.spawnTick;}}
-        }
-        if(group && order==ImprovedLootingConfig.LabelOrder.VALUE)nearby.sort(Comparator.<Entry>comparingLong(e->PriceTiers.value(e.facts.getGePrice(),e.renderQuantity)).reversed().thenComparing(byName).thenComparingLong(e->e.key));
-        if(config.prioritizeLoot())nearby.sort(LootPileOrder.labels().thenComparing(byName).thenComparingLong(e->e.key));
+        group(nearby);
+        if(config.groupStacks() && order==ImprovedLootingConfig.LabelOrder.VALUE)nearby.sort(Comparator.<Entry>comparingLong(e->PriceTiers.value(e.facts.getGePrice(),e.renderQuantity)).reversed().thenComparing(byName).thenComparingLong(e->e.key));
+        if(config.prioritizeLoot())nearby.sort(LootPileOrder.labels(this::labelHidden).thenComparing(byName).thenComparingLong(e->e.key));
         List<LootRow> next = new ArrayList<>();
         for (Entry e : nearby)
         {

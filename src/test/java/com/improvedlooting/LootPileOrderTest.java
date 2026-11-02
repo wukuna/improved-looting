@@ -58,7 +58,8 @@ public class LootPileOrderTest {
     @Test public void rightClicksProviderUsesSameRanksEvenWhenRulesRequestAnotherOrder() {
         LootRuntimeTest.Fixture f=fixture();when(f.loot.config.shareMenuIcons()).thenReturn(true);when(f.loot.client.isClientThread()).thenReturn(true);
         MenuIconPublisher publisher=new MenuIconPublisher();publisher.client=f.loot.client;publisher.config=f.loot.config;publisher.loot=f.loot;publisher.icons=f.loot.icons;publisher.icons.filters=f.loot.filters;
-        Map<Integer,Integer> ranks=LootPileOrder.ranks(f.tile,f.loot.filters,f.loot.config);
+        Map<Integer,Integer> ranks=new HashMap<>();
+        for(int id:new int[]{1,2,3,4,5,6})ranks.put(id,f.loot.menuRank(f.tile,id,99));
         for(int id:new int[]{1,2,3,4,5,6}) {
             Map<String,Object> data=new HashMap<>();data.put("worldViewId",0);data.put("x",0);data.put("y",0);data.put("z",0);data.put("itemId",id);
             publisher.onPluginMessage(new PluginMessage("improved-looting","resolved-display-request-v1",data));
@@ -69,9 +70,10 @@ public class LootPileOrderTest {
         LootRuntimeTest.Fixture f=new LootRuntimeTest.Fixture("rule(true){}");
         add(f,1,"Coins",5,1,true); add(f,1,"Coins",100000,1,true); add(f,2,"Rune arrow",1,100,true);
         when(f.items.get(1).getOwnership()).thenReturn(TileItem.OWNERSHIP_OTHER);when(f.loot.config.onlyShowOwnedDrops()).thenReturn(true);
-        assertTrue(LootPileOrder.ranks(f.tile,f.loot.filters,f.loot.config).get(2)>LootPileOrder.ranks(f.tile,f.loot.filters,f.loot.config).get(1));
+        assertTrue(f.loot.menuRank(f.tile,2,99)>f.loot.menuRank(f.tile,1,99));
         when(f.loot.config.onlyShowOwnedDrops()).thenReturn(false);
-        assertTrue(LootPileOrder.ranks(f.tile,f.loot.filters,f.loot.config).get(1)>LootPileOrder.ranks(f.tile,f.loot.filters,f.loot.config).get(2));
+        f.loot.refreshSettings();
+        assertTrue(f.loot.menuRank(f.tile,1,99)>f.loot.menuRank(f.tile,2,99));
     }
     @Test public void untradeablesStayLastRegardlessOfValueAndBoneWeaponsAreNormalLoot() {
         ItemFacts clue=ItemFacts.builder().name("Clue scroll").gePrice(Long.MAX_VALUE).quantity(5).build();

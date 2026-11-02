@@ -61,7 +61,7 @@ final class ImprovedLootingPanel extends PluginPanel
         button(visibility,"Nearby loot / hidden labels",()->{if(browser!=null)browser.close();browser=new LootBrowser(loot,icons,thread,preferences);browser.open(this);});
         JPanel ordering=disclosure(display,"Pile order and range…");
         toggle(ordering,"Group matching stacks on a tile","groupStacks",config::groupStacks);
-        hint(toggle(ordering,"Prioritize valuable loot","prioritizeLoot",config::prioritizeLoot),"Top to bottom: normal loot by total GE value, bones/ashes, then untradeables. Applies to cards, labels and left/right-click Take order. Overrides Item order and filter menu sorting while enabled. Other actions and item/spell targeting retain their priority.");
+        hint(toggle(ordering,"Prioritize valuable loot","prioritizeLoot",config::prioritizeLoot),"Visible loot comes before hidden loot. Within each group: normal loot by total GE value, bones/ashes, then untradeables. Applies to cards, labels and left/right-click Take order. Overrides Item order and filter menu sorting while enabled. Other actions and item/spell targeting retain their priority.");
         hint(choice(ordering,"Item order","labelOrder",ImprovedLootingConfig.LabelOrder.values(),config::labelOrder),"Used when Prioritize valuable loot is off.");
         choice(ordering,"Alignment at the pile","labelAlignment",ImprovedLootingConfig.LabelAlignment.values(),config::labelAlignment);
         number(ordering,"Range (tiles)","labelRange",config::labelRange,1,64);

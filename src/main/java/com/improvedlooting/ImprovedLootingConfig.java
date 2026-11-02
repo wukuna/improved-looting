@@ -26,7 +26,7 @@ public interface ImprovedLootingConfig extends Config
     default boolean shareMenuIcons() { return false; }
 
     enum LabelOrder { VALUE, DISTANCE, NAME, TIME }
-    @ConfigItem(keyName="prioritizeLoot",name="Prioritize valuable loot",description="Normal loot by value, then bones/ashes, then untradeables; labels and left/right-click Take order",hidden=true)
+    @ConfigItem(keyName="prioritizeLoot",name="Prioritize valuable loot",description="Visible loot before hidden loot; within each group, normal loot by value, then bones/ashes, then untradeables; labels and left/right-click Take order",hidden=true)
     default boolean prioritizeLoot() { return true; }
     @ConfigItem(keyName="hideHiddenMenuItems",name="Hide filtered items in menus",description="Remove hidden items from ordinary ground menus; hold Alt to reveal",hidden=true)
     default boolean hideHiddenMenuItems() { return false; }

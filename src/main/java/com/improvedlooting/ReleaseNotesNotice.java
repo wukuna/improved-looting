@@ -22,6 +22,7 @@ final class ReleaseNotesNotice
     static final String RELEASE = "2026-11-02-tier-sound-save";
     static final String SEEN_KEY = "releaseNotesShown";
     private static final String[] UPDATES = {
+        "Prioritize visible loot above hidden items in labels and Take menus.",
         "Fix saving multiple custom tier sounds without false profile-change warnings.",
         "Keep setup imports and applying reviewed settings working through background profile refreshes.",
         "Show release changes together in one compact update notice."

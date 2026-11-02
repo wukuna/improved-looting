@@ -5,6 +5,7 @@ import java.util.*;
 import net.runelite.api.*;
 import net.runelite.api.events.MenuOpened;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import net.runelite.client.util.Text;
 
 /** Presentation only: never changes the scene's item deque or invokes an action. */
@@ -22,41 +23,36 @@ final class LootPileOrder {
         return category != 0 ? category : Long.compare(PriceTiers.value(b.getGePrice(), bq), PriceTiers.value(a.getGePrice(), aq));
     }
 
-    static Comparator<GroundLoot.Entry> labels() {
-        return (a, b) -> compare(a.facts, a.renderQuantity, b.facts, b.renderQuantity);
+    static Comparator<GroundLoot.Entry> labels(Predicate<GroundLoot.Entry> hidden) {
+        // Visibility is stable during one client-thread sort. Resolve it once per
+        // entry, rather than rereading preferences and config on every comparison.
+        Map<GroundLoot.Entry, Boolean> visibility = new IdentityHashMap<>();
+        return Comparator.comparing((GroundLoot.Entry e) -> visibility.computeIfAbsent(e, hidden::test))
+            .thenComparing((a, b) -> compare(a.facts, a.renderQuantity, b.facts, b.renderQuantity));
     }
 
     // Integer ranks give the existing Right-Clicks provider exactly the same order,
     // without truncating long stack values into an int or changing rule visibility.
-    static Map<Integer, Integer> ranks(Tile tile, FilterIcons filters, ImprovedLootingConfig config) {
-        if (tile == null || tile.getGroundItems() == null) return Collections.emptyMap();
-        Map<Integer, ItemFacts> facts = new LinkedHashMap<>();
-        Map<Integer, Long> quantities = new HashMap<>();
-        Map<Integer, Boolean> visible = new HashMap<>();
-        for (TileItem item : tile.getGroundItems()) {
-            ItemFacts f = filters.facts(tile, item);
-            boolean owned = !config.onlyShowOwnedDrops() || item.getOwnership() == TileItem.OWNERSHIP_SELF || item.getOwnership() == TileItem.OWNERSHIP_GROUP;
-            boolean existing = facts.containsKey(f.getId());
-            if (existing && visible.get(f.getId()) && !owned) continue;
-            if (!existing || !visible.get(f.getId()) && owned) {
-                facts.put(f.getId(), f); quantities.put(f.getId(), (long)f.getQuantity()); visible.put(f.getId(), owned);
-            } else {
-                quantities.merge(f.getId(), (long)f.getQuantity(), config.groupStacks() ? LootPileOrder::sum : Math::max);
-            }
+    static Map<Integer, Integer> ranks(Collection<GroundLoot.Entry> pile, Predicate<GroundLoot.Entry> hidden) {
+        Comparator<GroundLoot.Entry> order = labels(hidden);
+        Map<Integer, GroundLoot.Entry> best = new LinkedHashMap<>();
+        for (GroundLoot.Entry entry : pile) {
+            if (entry.grouped) continue;
+            // Menus identify an item ID, not an individual copy. Prefer its best
+            // visible group without counting hidden copies toward that group's value.
+            best.merge(entry.item.getId(), entry, (a, b) -> order.compare(a, b) <= 0 ? a : b);
         }
-        List<Integer> ids = new ArrayList<>(facts.keySet());
-        ids.sort((a,b) -> compare(facts.get(a), quantities.get(a), facts.get(b), quantities.get(b)));
+        List<Integer> ids = new ArrayList<>(best.keySet());
+        ids.sort((a,b) -> order.compare(best.get(a), best.get(b)));
         Map<Integer,Integer> result = new HashMap<>();
         int rank = 0;
         for (int i = 0; i < ids.size(); i++) {
             int id = ids.get(i);
-            if (i > 0 && compare(facts.get(ids.get(i-1)), quantities.get(ids.get(i-1)), facts.get(id), quantities.get(id)) != 0) rank = i;
+            if (i > 0 && order.compare(best.get(ids.get(i-1)), best.get(id)) != 0) rank = i;
             result.put(id, -rank); // RuneLite's menu array is bottom to top.
         }
         return result;
     }
-
-    private static long sum(long a, long b) { return a > Long.MAX_VALUE - b ? Long.MAX_VALUE : a + b; }
 
     static void opened(Client client, ImprovedLootingConfig config, MenuOpened event, Function<Tile, Map<Integer,Integer>> rankLookup) {
         if (!config.prioritizeLoot() || client.getGameState() != GameState.LOGGED_IN) return;
