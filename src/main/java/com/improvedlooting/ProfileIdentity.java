@@ -9,7 +9,7 @@ final class ProfileIdentity
 
     static Long current(ConfigManager configs)
     {
-        // Background config saves replace the profile object without switching profiles.
+
         ConfigProfile profile=configs.getProfile();
         return profile==null?null:profile.getId();
     }

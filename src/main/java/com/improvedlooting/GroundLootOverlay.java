@@ -48,8 +48,7 @@ final class GroundLootOverlay extends Overlay
                 if (paintOrder.size() >= LootAlerts.clamp(config.maxLabels(),10,1000)) break;
                 paintOrder.add(entry);
             }
-            // Labels grow upwards; cards grow downwards. Select highest-priority rows
-            // before reversing so a label limit never favors the lowest-value items.
+
             if (config.prioritizeLoot()) Collections.reverse(paintOrder);
             for (GroundLoot.Entry entry : paintOrder) {
                 if (loot.selected(entry)) {

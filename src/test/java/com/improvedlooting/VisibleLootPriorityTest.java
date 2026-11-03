@@ -42,7 +42,7 @@ public class VisibleLootPriorityTest {
         LootRuntimeTest.Fixture f=fixture("rule(id:1){hidden=true;} rule(true){}");
         when(f.loot.config.minimumLabelValue()).thenReturn(500);
         add(f,1,"Amethyst arrow",1,10000,true);add(f,2,"Coins",100,1,true);add(f,3,"Malicious ashes",1,1000,true);
-        // Menus can be requested before the next game tick has indexed these drops.
+
         AtomicReference<MenuEntry[]> current=menu(f,3,2,1);
         f.loot.onPostMenuSort(new PostMenuSort());assertEquals(3,current.get()[2].getIdentifier());
         current=menu(f,3,2,1);MenuOpened opened=new MenuOpened();opened.setMenuEntries(current.get());

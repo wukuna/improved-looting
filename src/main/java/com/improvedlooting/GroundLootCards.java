@@ -11,7 +11,6 @@ import net.runelite.api.Tile;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.util.AsyncBufferedImage;
 
-/** Draw-only cards. Mouse position can expand a pile, but no input is intercepted. */
 final class GroundLootCards
 {
     @Inject Client client;

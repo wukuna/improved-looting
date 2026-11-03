@@ -60,7 +60,7 @@ public class LootDisplayOptionsTest
         f.items.add(f.item(1,1,200));f.items.add(f.item(2,2,200));f.tick(100);
         GroundLoot.Entry one=f.loot.entries().stream().filter(e->e.item.getId()==1).findFirst().get();
         assertTrue(f.loot.labelHidden(one));f.loot.preferences.labelHidden(1,false);
-        assertFalse(f.loot.labelHidden(one));assertTrue(one.display.isHidden()); // Menu/filter outcome preserved.
+        assertFalse(f.loot.labelHidden(one));assertTrue(one.display.isHidden());
         assertFalse(LootDisplayOptions.hidden(false,null,15000,15000));
         assertTrue(LootDisplayOptions.hidden(false,null,14999,15000));
         assertTrue(LootDisplayOptions.hidden(false,true,999999,0));

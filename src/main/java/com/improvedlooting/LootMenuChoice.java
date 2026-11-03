@@ -1,6 +1,5 @@
 package com.improvedlooting;
 
-/** An item override wins over its matching rule, then the global default. */
 enum LootMenuChoice
 {
     DEFAULT("Follow default",null), HIDE("Hide when tag hidden",true), KEEP("Keep in menu",false);

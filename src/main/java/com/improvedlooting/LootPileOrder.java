@@ -8,7 +8,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import net.runelite.client.util.Text;
 
-/** Presentation only: never changes the scene's item deque or invokes an action. */
 final class LootPileOrder {
     private LootPileOrder() {}
 
@@ -24,22 +23,18 @@ final class LootPileOrder {
     }
 
     static Comparator<GroundLoot.Entry> labels(Predicate<GroundLoot.Entry> hidden) {
-        // Visibility is stable during one client-thread sort. Resolve it once per
-        // entry, rather than rereading preferences and config on every comparison.
+
         Map<GroundLoot.Entry, Boolean> visibility = new IdentityHashMap<>();
         return Comparator.comparing((GroundLoot.Entry e) -> visibility.computeIfAbsent(e, hidden::test))
             .thenComparing((a, b) -> compare(a.facts, a.renderQuantity, b.facts, b.renderQuantity));
     }
 
-    // Integer ranks give the existing Right-Clicks provider exactly the same order,
-    // without truncating long stack values into an int or changing rule visibility.
     static Map<Integer, Integer> ranks(Collection<GroundLoot.Entry> pile, Predicate<GroundLoot.Entry> hidden) {
         Comparator<GroundLoot.Entry> order = labels(hidden);
         Map<Integer, GroundLoot.Entry> best = new LinkedHashMap<>();
         for (GroundLoot.Entry entry : pile) {
             if (entry.grouped) continue;
-            // Menus identify an item ID, not an individual copy. Prefer its best
-            // visible group without counting hidden copies toward that group's value.
+
             best.merge(entry.item.getId(), entry, (a, b) -> order.compare(a, b) <= 0 ? a : b);
         }
         List<Integer> ids = new ArrayList<>(best.keySet());
@@ -49,7 +44,7 @@ final class LootPileOrder {
         for (int i = 0; i < ids.size(); i++) {
             int id = ids.get(i);
             if (i > 0 && order.compare(best.get(ids.get(i-1)), best.get(id)) != 0) rank = i;
-            result.put(id, -rank); // RuneLite's menu array is bottom to top.
+            result.put(id, -rank);
         }
         return result;
     }

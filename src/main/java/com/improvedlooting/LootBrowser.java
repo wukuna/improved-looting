@@ -9,7 +9,6 @@ import javax.swing.*;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.util.LinkBrowser;
 
-/** Read-only nearby view. Selecting a row highlights its tile; it never sends game actions. */
 final class LootBrowser
 {
     private final GroundLoot loot;

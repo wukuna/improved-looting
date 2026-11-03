@@ -10,7 +10,7 @@ import static org.mockito.Mockito.*;
 
 public class ImprovedLootingConfigProxyTest
 {
-    /** Use RuneLite's actual handler and JDK proxy, without loading a user's profile. */
+
     static ImprovedLootingConfig proxy(Map<String,String> saved) throws Exception
     {
         ConfigManager manager=mock(ConfigManager.class,CALLS_REAL_METHODS);

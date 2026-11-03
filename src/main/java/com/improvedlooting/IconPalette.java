@@ -43,7 +43,7 @@ final class IconPalette extends JPanel
             String encoded;
             try { encoded=IconImages.encode(image); } catch(IOException ex) { throw new IllegalArgumentException("Could not prepare icon",ex); }
             String name=kind.name().substring(0,1)+kind.name().substring(1).toLowerCase(java.util.Locale.ROOT);
-            // Content-derived paths cannot overwrite a user's differently drawn image with the same name.
+
             String file="improved-icons/"+kind.name().toLowerCase(java.util.Locale.ROOT)+"-"+Integer.toHexString(encoded.hashCode())+".png";
             tile(common,name,image,new Selection(kind,0,file,encoded));
         }

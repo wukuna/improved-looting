@@ -6,7 +6,6 @@ import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.event.*;
 
-/** Search suggestions stay inside the editor; no floating menus or focus stealing. */
 final class ItemPicker extends JPanel
 {
     private final JTextField query=new JTextField();

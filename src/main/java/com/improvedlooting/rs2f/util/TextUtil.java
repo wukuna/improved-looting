@@ -1,4 +1,3 @@
-// Adapted from riktenx/loot-filters (BSD-2-Clause); see loot-filters-LICENSE.txt.
 package com.improvedlooting.rs2f.util;
 
 import java.io.IOException;
@@ -26,19 +25,19 @@ public class TextUtil {
     }
 
     public static String abbreviate(long value) {
-        if (value >= 1e9) { // > 1b
+        if (value >= 1e9) {
             return String.format("%.2fB", (float)value / 1e9);
-        } else if (value >= 1e8) { // > 100m
+        } else if (value >= 1e8) {
             return String.format("%.0fM", (float)value / 1e6);
-        } else if (value >= 1e7) { // > 10m
+        } else if (value >= 1e7) {
             return String.format("%.1fM", (float)value / 1e6);
-        } else if (value >= 1e6) { // > 1m
+        } else if (value >= 1e6) {
             return String.format("%.2fM", (float)value / 1e6);
-        } else if (value >= 1e5) { // > 100k
+        } else if (value >= 1e5) {
             return String.format("%.0fK", (float)value / 1e3);
-        } else if (value >= 1e4) { // > 10k
+        } else if (value >= 1e4) {
             return String.format("%.1fK", (float)value / 1e3);
-        } else if (value >= 1e3) { // > 1k
+        } else if (value >= 1e3) {
             return String.format("%.2fK", (float)value / 1e3);
         }
         return Long.toString(value);

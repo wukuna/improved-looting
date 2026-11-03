@@ -15,7 +15,6 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ProfileChanged;
 
-/** Bundled release notes, shown once per release in each RuneLite profile. */
 @Singleton
 final class ReleaseNotesNotice
 {
@@ -71,7 +70,7 @@ final class ReleaseNotesNotice
 
     @Subscribe public void onProfileChanged(ProfileChanged event)
     {
-        // An old queued callback must not announce against a replacement profile.
+
         generation++;
         if (running) schedule();
     }

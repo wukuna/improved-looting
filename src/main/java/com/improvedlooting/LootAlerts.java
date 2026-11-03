@@ -11,7 +11,6 @@ import net.runelite.api.Client;
 import net.runelite.client.Notifier;
 import net.runelite.client.audio.AudioPlayer;
 
-/** Client-thread alert decisions, bounded history; imported audio plays off the client thread. */
 @Singleton
 final class LootAlerts
 {

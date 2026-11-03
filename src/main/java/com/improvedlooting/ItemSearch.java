@@ -11,7 +11,6 @@ import net.runelite.api.ItemComposition;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.game.ItemManager;
 
-/** Read-only, incremental catalogue. Includes untradeables; never scans on the EDT. */
 @Singleton
 final class ItemSearch
 {

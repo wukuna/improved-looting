@@ -11,7 +11,6 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SpriteManager;
 
-/** Our own assignments; never writes Loot Filters configuration or files. */
 @Singleton
 class ItemIcons
 {

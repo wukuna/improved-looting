@@ -4,7 +4,6 @@ import java.util.*;
 import javax.inject.*;
 import net.runelite.client.config.ConfigManager;
 
-/** Copy only loot data; never change or remove another plugin's settings. */
 @Singleton
 final class LegacyImport
 {
@@ -23,7 +22,7 @@ final class LegacyImport
     }
     void apply(Map<String,String> copy)
     {
-        // Check every destination before writing any data. An existing setup is never overwritten.
+
         for(String key:copy.keySet()) {
             String existing=configs.getConfiguration(ImprovedLootingConfig.GROUP,key);
             if(existing!=null && !existing.isBlank()) throw new IllegalArgumentException("A setup already exists here. Export it and clear it before copying another setup.");

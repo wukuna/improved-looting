@@ -1,4 +1,3 @@
-// Adapted from riktenx/loot-filters (BSD-2-Clause); see loot-filters-LICENSE.txt.
 package com.improvedlooting.rs2f.lang;
 
 import java.util.ArrayList;
@@ -7,9 +6,6 @@ import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-/**
- * TokenStream wraps a list of Tokens to expose retrieval APIs suitable for parsing.
- */
 public class TokenStream {
     private final List<Token> tokens;
     private int index = 0;
@@ -18,16 +14,10 @@ public class TokenStream {
         this.tokens = tokens;
     }
 
-    /**
-     * Returns a shallow copy of the token stream.
-     */
     public List<Token> getTokens() {
         return new ArrayList<>(tokens.subList(index, tokens.size()));
     }
 
-    /**
-     * Peek at the first token in the stream, ignoring whitespace, without consuming it.
-     */
     public Token peek() {
         for (int i = index; i < tokens.size(); i++) {
             var token = tokens.get(i);
@@ -39,9 +29,6 @@ public class TokenStream {
         return null;
     }
 
-    /**
-     * Consume the first token in the stream, optionally including whitespace.
-     */
     public Token take(boolean includeWhitespace) {
         for (int i = index; i < tokens.size(); i++) {
             var next = tokens.get(i);
@@ -55,17 +42,10 @@ public class TokenStream {
         return null;
     }
 
-    /**
-     * Consume the first non-whitespace token in the stream.
-     */
     public Token take() {
         return take(false);
     }
 
-    /**
-     * Consume the first token in the stream, optionally including whitespace, while asserting that it is of the given
-     * type.
-     */
     public Token takeExpect(Token.Type expect, boolean includeWhitespace) {
         if (tokens.isEmpty()) {
             throw new ParseException("unexpected end of token stream");
@@ -78,17 +58,10 @@ public class TokenStream {
         return first;
     }
 
-    /**
-     * Consume the first non-whitespace token in the stream while asserting that it is of the given type.
-     */
     public Token takeExpect(Token.Type expect) {
         return takeExpect(expect, false);
     }
 
-    /**
-     * Consumes the first non-whitespace token at the head of the stream, asserting that it is any one of the literal
-     * types (int, string, boolean).
-     */
     public Token takeExpectLiteral() {
         var first = take();
         if (!first.is(Token.Type.LITERAL_INT)
@@ -100,10 +73,6 @@ public class TokenStream {
         return first;
     }
 
-    /**
-     * Take a complete line from the stream, preserving whitespace, and EXCLUDING the newline at the end, which is
-     * discarded.
-     */
     public List<Token> takeLine() {
         var line = new ArrayList<Token>();
         int i;
@@ -121,23 +90,12 @@ public class TokenStream {
         return line;
     }
 
-    /**
-     * Consumes a token of the expected type if it's at the head of the stream, doing nothing otherwise.
-     */
     public void takeOptional(Token.Type type) {
         if (peek().is(type)) {
             take();
         }
     }
 
-    /**
-     * Traverse an expression enclosed by the given start and end tokens at the head of the stream.
-     * The traversal will verify that the expression in the stream is balanced. The caller can and most likely will
-     * still maintain their own operator stack, but it won't require balance checks.
-     * Callers MAY consume any number of tokens from the front of the stream, as long as they do not remove enclosing
-     * tokens in a manner that would disrupt the balance check.
-     * The consumer will be invoked with both the starting and ending enclosing tokens.
-     */
     public void walkExpression(Token.Type start, Token.Type end, Consumer<Token> consumer) {
         var state = new Stack<Token>();
         if (!peek().is(start)) {
@@ -157,7 +115,7 @@ public class TokenStream {
             }
 
             consumer.accept(next);
-            if (state.isEmpty()) { // balanced expression
+            if (state.isEmpty()) {
                 return;
             }
         }
@@ -166,10 +124,6 @@ public class TokenStream {
         }
     }
 
-    /**
-     * Take an entire expression denoted by start and end tokens from the head of the stream, optionally including those
-     * enclosing tokens.
-     */
     public TokenStream take(Token.Type start, Token.Type end, boolean preserveEnclosing) {
         var inner = new ArrayList<Token>();
         walkExpression(start, end, inner::add);
@@ -180,17 +134,10 @@ public class TokenStream {
         return new TokenStream(inner);
     }
 
-    /**
-     * Take an entire expression denoted by start and end tokens from the head of the stream, IGNORING those enclosing
-     * tokens.
-     */
     public TokenStream take(Token.Type start, Token.Type end) {
         return take(start, end, false);
     }
 
-    /**
-     * Consumes an argument list at the head of the stream matching the grammar ( expr0, expr1, <...> exprN [,] ).
-     */
     public List<TokenStream> takeArgList() {
         var args = new ArrayList<TokenStream>();
         var current = new ArrayList<Token>();
@@ -222,27 +169,18 @@ public class TokenStream {
         return args;
     }
 
-    /**
-     * Attempt to parse the entire token stream as a list of strings.
-     */
     public List<String> expectStringList() {
         return expectList().stream()
                 .map(Token::expectString)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Attempt to parse the entire token stream as a list of integers.
-     */
     public List<Integer> expectIntList() {
         return expectList().stream()
                 .map(Token::expectInt)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Attempt to parse the entire token stream as a list of single, non-nested tokens.
-     */
     public List<Token> expectList() {
         var tokens = new ArrayList<Token>();
 
@@ -269,7 +207,7 @@ public class TokenStream {
         return tokens;
     }
 
-    public boolean isNotEmpty() { // this doesn't _currently_ need a version that checks non-semantic
+    public boolean isNotEmpty() {
         for (int i = index; i < tokens.size(); i++) {
             if (tokens.get(i).isSemantic()) return true;
         }

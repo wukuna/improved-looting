@@ -2,7 +2,6 @@ package com.improvedlooting;
 
 import java.awt.*;
 
-/** One paint per visible label; no per-character objects or extra animation timers. */
 final class LootTextPaint
 {
     private static final float[] STOPS={0,1f/6,2f/6,3f/6,4f/6,5f/6,1};

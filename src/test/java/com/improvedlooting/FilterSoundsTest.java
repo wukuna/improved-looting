@@ -13,7 +13,6 @@ import javax.sound.sampled.AudioSystem;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-/** Independent JDK writers generate fixtures; no device is opened or sound played. */
 public class FilterSoundsTest
 {
     private static final AudioFileFormat.Type[] TYPES = {
@@ -76,7 +75,7 @@ public class FilterSoundsTest
         byte[] bytes = sound(AudioFileFormat.Type.AU, 8000, 1, 1);
         ByteBuffer.wrap(bytes).putInt(8, -1); reject(bytes);
         bytes = sound(AudioFileFormat.Type.AIFF, 8000, 1, 1);
-        // AIFF COMM rate is the 80-bit field at byte 28 in this independent fixture.
+
         ByteBuffer.wrap(bytes).putShort(28, (short)0x7fff); reject(bytes);
     }
 }

@@ -2,7 +2,6 @@ package com.improvedlooting;
 
 import java.awt.image.BufferedImage;
 
-/** Immutable browser data; no game objects cross onto Swing's event thread. */
 final class LootRow
 {
     final long key, value;

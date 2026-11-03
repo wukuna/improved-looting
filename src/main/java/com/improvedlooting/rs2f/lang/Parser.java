@@ -1,4 +1,3 @@
-// Adapted from riktenx/loot-filters (BSD-2-Clause); see loot-filters-LICENSE.txt.
 package com.improvedlooting.rs2f.lang;
 
 import com.improvedlooting.rs2f.DisplayConfig;
@@ -57,12 +56,6 @@ import static com.improvedlooting.rs2f.lang.Token.Type.RULE;
 import static com.improvedlooting.rs2f.lang.Token.Type.STMT_END;
 import static com.improvedlooting.rs2f.lang.Token.Type.TRUE;
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !! DO NOT add features to the RS2F language without consulting Rikten X first. !!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//
-// Parser somewhat mixes canonical stages 2 (parse) and 3/4 (syntax/semantic analysis) but the filter language is
-// restricted enough that it should be fine for now.
 @RequiredArgsConstructor
 public class Parser {
     private final TokenStream tokens;
@@ -131,7 +124,7 @@ public class Parser {
                         rulesPostfix.add(new OrCondition(null));
                     }
                 }
-                operators.pop(); // the (
+                operators.pop();
                 unwindUnary(operators, rulesPostfix);
             } else if (it.is(OP_AND)) {
                 operators.push(it);
@@ -154,7 +147,7 @@ public class Parser {
             }
         });
 
-        while (!operators.isEmpty()) { // is this necessary? since parenthesis around overall expr are guaranteed
+        while (!operators.isEmpty()) {
             var op = operators.pop();
             if (op.is(OP_AND)) {
                 rulesPostfix.add(new AndCondition(null));
@@ -165,10 +158,9 @@ public class Parser {
             }
         }
 
-        // rule expression MUST be followed by block w/ display config assignments
         tokens.takeExpect(BLOCK_START);
         var builder = DisplayConfig.builder();
-        while (!tokens.peek().is(BLOCK_END)) { // TokenStream.traverseBlock?
+        while (!tokens.peek().is(BLOCK_END)) {
             var property = tokens.peek();
             if (property.getValue().equals("icon")) {
                 parseIcon(builder);
@@ -237,7 +229,7 @@ public class Parser {
     }
 
     private Condition parseRule(Token first) {
-        tokens.takeExpect(COLON); // grammar is always <id><colon><...>
+        tokens.takeExpect(COLON);
         switch (first.getValue()) {
             case "id":
                 return parseItemIdRule();
@@ -347,7 +339,7 @@ public class Parser {
         return new com.improvedlooting.rs2f.ast.PostfixCondition(postfix);
     }
 
-    private Token[] parseAssignment() { // assignments do not support nested expressions, making this trivial
+    private Token[] parseAssignment() {
         var ident = tokens.takeExpect(IDENTIFIER);
         tokens.takeExpect(ASSIGN);
         var value = tokens.takeExpectLiteral();

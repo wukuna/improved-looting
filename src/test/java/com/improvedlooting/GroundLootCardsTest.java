@@ -27,7 +27,7 @@ public class GroundLootCardsTest
             for(PriceTiers.Effect effect:PriceTiers.Effect.values()) {
                 PriceTiers.Setup setup=PriceTiers.defaults();for(PriceTiers.Tier tier:setup.tiers){tier.effect=effect;tier.color=0xff00ff;}
                 cards.tiers.save(cards.tiers.prepare(setup));BufferedImage image=render(cards);
-                // Fixed-size production card: rail at x=270, name begins at x=311.
+
                 assertTrue(hasColor(image.getSubimage(270,242,6,26),Color.YELLOW.getRGB()));
                 assertTrue(hasColor(image.getSubimage(311,242,70,26),Color.YELLOW.getRGB()));
                 if(effect==PriceTiers.Effect.RGB)javax.imageio.ImageIO.write(image,"png",new java.io.File("build/highlight-"+theme.name().toLowerCase()+"-preview.png"));
@@ -98,7 +98,7 @@ public class GroundLootCardsTest
         GroundLoot.Entry entry=f.loot.entries().iterator().next();entry.image=sprite();
         BufferedImage neither=render(cards);when(f.loot.config.iconDespawnFade()).thenReturn(true);BufferedImage fade=render(cards);
         when(f.loot.config.alwaysShowTimer()).thenReturn(true);BufferedImage both=render(cards);when(f.loot.config.iconDespawnFade()).thenReturn(false);BufferedImage timer=render(cards);
-        // Manual 260 x 26 card at x=270, y=242; picture scales to 24 px.
+
         assertNotEquals(neither.getRGB(290,247),fade.getRGB(290,247));assertEquals(timer.getRGB(290,247),neither.getRGB(290,247));
         assertArrayEquals(fade.getRGB(310,242,210,26,null,0,210),neither.getRGB(310,242,210,26,null,0,210));
         assertArrayEquals(timer.getRGB(310,242,210,26,null,0,210),both.getRGB(310,242,210,26,null,0,210));

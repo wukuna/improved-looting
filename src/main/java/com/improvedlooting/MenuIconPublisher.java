@@ -13,7 +13,6 @@ import net.runelite.client.eventbus.*;
 import net.runelite.client.events.PluginMessage;
 import net.runelite.client.util.AsyncBufferedImage;
 
-/** Optional resolved-display provider. Menu mutation belongs entirely to the consumer. */
 @Singleton
 final class MenuIconPublisher
 {

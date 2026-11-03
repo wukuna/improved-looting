@@ -12,7 +12,6 @@ import net.runelite.api.GameState;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.input.MouseAdapter;
 
-/** User Alt-clicks edit only this plugin's label preferences; never game actions. */
 @Singleton
 final class LootLabelInput extends MouseAdapter
 {
@@ -33,7 +32,7 @@ final class LootLabelInput extends MouseAdapter
     void start(){active=true;reset();}
     void stop(){active=false;reset();}
     synchronized void reset(){generation++;displayed=new Frame(Collections.emptyList(),generation,0);}
-    // Keep the last completed frame clickable while its replacement is painted.
+
     void beginFrame(){frameGeneration=generation;frame.clear();}
     void add(Rectangle bounds,GroundLoot.Entry entry,boolean hidden){frame.add(new Hit(bounds,entry.item.getId(),hidden));}
     synchronized void finishFrame(){if(active && frameGeneration==generation)displayed=new Frame(Collections.unmodifiableList(new ArrayList<>(frame)),generation,System.nanoTime());}
@@ -44,7 +43,7 @@ final class LootLabelInput extends MouseAdapter
         Frame snapshot=displayed;
         if(!active || event.isConsumed() || event.getButton()!=MouseEvent.BUTTON1 || !event.isAltDown()
             || snapshot.generation!=generation || System.nanoTime()-snapshot.renderedAt>500_000_000L)return event;
-        // The last painted label is the one visible on top of an overlap.
+
         for(int i=snapshot.hits.size()-1;i>=0;i--) {
             Hit hit=snapshot.hits.get(i);if(!hit.bounds.contains(event.getPoint()))continue;
             pressed=hit;pressX=event.getX();pressY=event.getY();pressGeneration=snapshot.generation;

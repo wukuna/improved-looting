@@ -15,7 +15,6 @@ import net.runelite.client.Notifier;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.PluginManager;
 
-/** Client-thread ground-item index. Rules run when facts change, never during painting. */
 @Singleton
 final class GroundLoot
 {
@@ -73,14 +72,12 @@ final class GroundLoot
             entry.source=cached==null?null:cached.source;
             pile.add(entry);
         }
-        // Share label grouping and visibility, including minimum stack value and
-        // Alt-click overrides. Fresh drops can have menus before their first tick.
+
         group(pile);
         return LootPileOrder.ranks(pile,this::labelHidden);
     }
     int menuRank(Tile tile, int id, int fallback) { return ranks(tile).getOrDefault(id,fallback); }
-    // A menu entry cannot distinguish duplicate copies. Keep it if any copy is
-    // visible or unresolved, so filtering never strands a visible drop.
+
     private boolean menuHidden(Tile tile, int id) {
         if(tile==null || tile.getGroundItems()==null)return false;
         boolean found=false;
@@ -100,7 +97,7 @@ final class GroundLoot
     private void updateMenu(MenuOpened event) {
         if(client.getGameState()!=GameState.LOGGED_IN)return;
         MenuEntry[] original=client.getMenu().getMenuEntries();
-        // Never change selected-item or selected-spell targeting menus.
+
         for(MenuEntry e:original)if(e.getType()==MenuAction.WIDGET_TARGET_ON_GROUND_ITEM
             || e.getType()==MenuAction.ITEM_USE_ON_GROUND_ITEM)return;
         if((config.hideHiddenMenuItems() || conditionalMenuHiding) && !reveal()) {
@@ -158,8 +155,7 @@ final class GroundLoot
         return LootDisplayOptions.ownershipHidden(config,e) || LootDisplayOptions.hidden(false,manual,PriceTiers.value(e.facts.getGePrice(),e.renderQuantity),LootDisplayOptions.minimum(config,e));
     }
     double renderTick() { return client.getTickCount() + (lastTickNanos == 0 ? 0 : Math.min(1, (System.nanoTime()-lastTickNanos)/600000000.0)); }
-    // Overrides do not change item facts or icons. Reuse the evaluated filter so
-    // editing one label cannot blank every pile until the next game tick.
+
     void refreshOverrides()
     {
         menuRanks.clear();
@@ -264,7 +260,7 @@ final class GroundLoot
         if (prepared == null) return;
         if(e.facts==null && evaluationsRemaining<=0)return;
         int quantity=e.item.getQuantity(), ownership=e.item.getOwnership();
-        // Quantity/ownership are cheap live facts; refresh GE values in staggered batches.
+
         if(evaluationsRemaining>0 && (e.facts==null || e.quantity!=quantity || e.ownership!=ownership || (e.key & 63)==(client.getTickCount() & 63))) {
             evaluationsRemaining--;
             ItemFacts facts=filters.facts(e.tile,e.item);e.quantity=quantity;e.ownership=ownership;
@@ -326,8 +322,7 @@ final class GroundLoot
         }
         rows = Collections.unmodifiableList(next);
     }
-    // RuneLite 1.13.4 ItemStack.getLocation() always returns null. No supported
-    // event identifies a specific ground pile's monster source; never infer it.
+
     private BufferedImage image(BufferedImageProvider icon, int itemId)
     {
         if (icon == null) return null;
@@ -356,7 +351,7 @@ final class GroundLoot
             Set<Tile> selected=Collections.newSetFromMap(new IdentityHashMap<>());
             for(Entry e:candidates){if(selected.add(e.tile)){desired.put(e,beamColor(e.display,PriceTiers.value(e.facts.getGePrice(),e.renderQuantity),setup));if(desired.size()==64)break;}}
         }
-        // Remove old owners before creating replacements, including when a grouped pile changes tier.
+
         for(Entry e:entries.values())if(!desired.containsKey(e) || !Objects.equals(e.beamColor,desired.get(e)))beamOff(e);
         desired.forEach(this::updateBeam);
     }

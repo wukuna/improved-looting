@@ -5,7 +5,6 @@ import com.improvedlooting.rs2f.FilterRule;
 import com.improvedlooting.rs2f.model.ItemFacts;
 import java.util.*;
 
-/** Shared decisions and explanations; callers capture game facts on the client thread. */
 final class LootResolution
 {
     static DisplayConfig resolve(FilterIcons.Prepared filter, ItemFacts facts, LootPreferences preferences, String source)

@@ -7,7 +7,6 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.undo.UndoManager;
 
-/** Draft-based editor: compiling and closing never replace the active filter. */
 final class FilterEditor
 {
     private final ItemIcons icons;

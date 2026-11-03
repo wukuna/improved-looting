@@ -1,4 +1,3 @@
-// Adapted from riktenx/loot-filters (BSD-2-Clause); see loot-filters-LICENSE.txt.
 package com.improvedlooting.rs2f.lang;
 
 import lombok.Getter;
@@ -20,7 +19,7 @@ public class ParseException extends CompileException {
     }
 
     private static String formatToken(Token token) {
-        // Format a message with source names only if available
+
         if (token.getLocation().getMacroSourceLocation() != null) {
             var tokenLocation = token.getLocation();
             var macroLocation = tokenLocation.getMacroSourceLocation();

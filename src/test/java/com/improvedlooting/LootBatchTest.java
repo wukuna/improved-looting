@@ -94,7 +94,7 @@ public class LootBatchTest {
         WorldView view=mock(WorldView.class);Scene scene=mock(Scene.class);when(view.getScene()).thenReturn(scene);when(filters.client.getTopLevelWorldView()).thenReturn(view);
         when(filters.client.getWorldView(0)).thenReturn(view);
         Tile tile=mock(Tile.class);net.runelite.api.coords.LocalPoint location=new net.runelite.api.coords.LocalPoint(128,128,view);when(tile.getLocalLocation()).thenReturn(location);
-        // Verify the actual supported initial IDs, including an expensive head.
+
         int[] ids={ItemID.ARCEUUS_CORPSE_ABYSSAL_INITIAL,ItemID.ARCEUUS_CORPSE_DRAGON_INITIAL,ItemID.ARCEUUS_CORPSE_GOBLIN_INITIAL};
         for(int id:ids) {
             ItemComposition raw=mock(ItemComposition.class),market=mock(ItemComposition.class);TileItem item=mock(TileItem.class);

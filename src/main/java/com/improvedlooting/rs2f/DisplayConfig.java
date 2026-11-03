@@ -1,4 +1,3 @@
-// Adapted from riktenx/loot-filters (BSD-2-Clause); see loot-filters-LICENSE.txt.
 package com.improvedlooting.rs2f;
 
 import com.improvedlooting.rs2f.model.SoundProvider;
@@ -40,7 +39,7 @@ public class DisplayConfig {
     private final FontType fontType;
     private final Color menuTextColor;
     private final Boolean hideOverlay;
-    // Improved Looting extension: only ordinary actions for an already hidden tag.
+
     private final Boolean hideMenu;
 
     private final Boolean highlightTile;
@@ -51,7 +50,6 @@ public class DisplayConfig {
     private final Integer menuSort;
     private final BufferedImageProvider icon;
 
-    // ideally this would be in EvalDisplayConfig which extends DisplayConfig but that's just more code tbh
     private final List<Integer> evalTrace;
 
     public DisplayConfig(Color textColor) {
@@ -61,7 +59,7 @@ public class DisplayConfig {
         hidden = false;
         showLootbeam = false;
         showValue = false;
-        compact = false; // compact is currently a config-only setting and not supported in rs2f
+        compact = false;
         showDespawn = false;
         notify = false;
         textAccent = null;
@@ -156,7 +154,7 @@ public class DisplayConfig {
         if (other.tileStrokeColor != null) { b.tileStrokeColor(other.tileStrokeColor); }
         if (other.tileFillColor != null) { b.tileFillColor(other.tileFillColor); }
         if (other.hideOverlay != null) { b.hideOverlay(other.hideOverlay); }
-        // First explicit menu choice wins, including an explicit keep (false).
+
         if (hideMenu == null && other.hideMenu != null) { b.hideMenu(other.hideMenu); }
         if (other.sound != null) { b.sound(other.sound); }
         if (other.menuSort != null) { b.menuSort(other.menuSort); }

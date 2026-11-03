@@ -33,7 +33,7 @@ public class LootProfilesEditorTest {
             SwingUtilities.invokeAndWait(()->ui.editor.exportTo(file));assertTrue(started.await(5,TimeUnit.SECONDS));
             SwingUtilities.invokeAndWait(()->{
                 assertFalse(button(ui.root,"Export settings…").isEnabled());
-                ui.editor.exportTo(file); // A repeated request cannot enqueue another export.
+                ui.editor.exportTo(file);
                 assertSmallText(ui.root);
                 assertEquals("Existing setup",combo(ui.root,"Saved setups").getSelectedItem());
                 render(ui.root,"settings-export-working.png",660,530);
@@ -64,7 +64,7 @@ public class LootProfilesEditorTest {
         Ui ui=new Ui(target);ui.ready();SwingUtilities.invokeAndWait(()->ui.editor.importFrom(file));ui.ready();
         assertEquals(before,target.export());
         SwingUtilities.invokeAndWait(()->assertTrue(button(ui.root,"Apply reviewed setup").isEnabled()));
-        current.set(profile(22)); // Another ordinary background profile refresh after review.
+        current.set(profile(22));
         ui.click("Apply reviewed setup");assertEquals(exported,target.export());assertEquals(before,target.undo());
         ui.click("Undo last change");ui.ready();assertEquals(exported,target.export());ui.click("Apply reviewed setup");
         assertEquals(before,target.export());assertEquals(exported,source.export());ui.close();

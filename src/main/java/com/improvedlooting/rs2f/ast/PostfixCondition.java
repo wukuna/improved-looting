@@ -3,7 +3,7 @@ import java.util.List;
 import com.improvedlooting.rs2f.FilterContext;
 import com.improvedlooting.rs2f.model.ItemFacts;
 import com.improvedlooting.rs2f.lang.ParseException;
-/** Iterative expression evaluation avoids stack overflow on large generated OR lists. */
+
 public final class PostfixCondition extends Condition {
  private final Condition[] code;
  private final int stackSize;

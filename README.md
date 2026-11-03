@@ -6,8 +6,6 @@ Make ground loot easier to scan with compact cards or classic labels, Native / O
 
 Open the chest side panel for three simple tabs: **Loot**, **Rules** and **Tools**. Loot starts with the display switch and style; expand **Label details**, **Visibility and menus**, **Pile order and range**, **Style**, **Drop tiers & sounds**, or **Alerts** as needed. Rules opens the filter and conditional menu editors. Tools opens one **Settings** window for file transfers, saved setups and starters, plus **Icons and filter files** for individual assets. Hover controls for brief explanations. Existing filters, assignments, assets and price tiers retain their saved settings.
 
-**Availability:** Install **Improved Looting** from RuneLite's Plugin Hub. The left-click priority, ensouled-head, per-card width, strip timer and optional menu-hiding update [#19873](https://github.com/runelite/plugin-hub/pull/19873) merged on 1 November 2026. The follow-up [#19891](https://github.com/runelite/plugin-hub/pull/19891) includes Alt-click reliability, highlight colors and conditional menu hiding; these changes require the matching updated build.
-
 **More plugins:** [Banking, Looting, Right-Clicks, Interface Layout and Chat](https://github.com/wukuna#runelite-plugins).
 
 ## What is included
@@ -55,9 +53,7 @@ Tracking is capped at 4,096 items. At most 256 fact/rule refreshes run in a game
 
 Custom images are limited to 2 MB / 2048 x 2048 each and 16 million decoded pixels combined per asset collection. Audio is limited to 15 seconds / 1 MB per file and 4 MB per collection. Presets are limited to twelve / 24 MB combined. At most five notification cards are visible; OS notifications are capped at three per game tick to avoid floods.
 
-Tests cover rule resolution, user fixtures, silent seeding, despawn thresholds, grouping, overrides, migration guards, assets, menu protocol, late-image invalidation, production card rendering, hover expansion, independent timer modes and fade pixels. Dialogs are rendered and inspected with RuneLite's look and feel. Synthetic dense-scene timings are engineering checks, not live FPS measurements. Not every sound, sub-world beam or third-party configuration has been validated live; automated checks do not establish live activation.
-
-No automatic pickup, gameplay actions, historical loot tracker, GPU depth prototype or interface positioning system is included. TFA exclusions remain unchanged. Imported parser code retains its BSD-2-Clause attribution in the packaged resources.
+Imported parser code retains its BSD-2-Clause attribution in the packaged resources.
 
 ## Label visibility
 

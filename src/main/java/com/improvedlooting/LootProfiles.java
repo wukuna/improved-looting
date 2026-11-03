@@ -3,7 +3,6 @@ package com.improvedlooting;
 import java.util.*;
 import javax.inject.*;
 
-/** Validated, versioned copies of this plugin's settings only. Assets travel inside the backup. */
 @Singleton
 final class LootProfiles
 {

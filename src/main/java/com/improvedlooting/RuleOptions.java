@@ -6,7 +6,6 @@ import java.util.*;
 import javax.swing.*;
 import net.runelite.client.util.Filepath;
 
-/** Visual editor for RS2F fields and Improved Looting's conditional menu choice. */
 final class RuleOptions extends JPanel
 {
     private final JCheckBox value=new JCheckBox("Value",true),timer=new JCheckBox("Timer",true),beam=new JCheckBox("Beam"),tile=new JCheckBox("Tile highlight"),notify=new JCheckBox("Notify"),colorEnabled=new JCheckBox("Text color");

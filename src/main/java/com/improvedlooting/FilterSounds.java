@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.Base64;
 import net.runelite.client.util.Filepath;
 
-/** Bounded, explicitly imported audio assets; no paths are opened during gameplay. */
 final class FilterSounds
 {
     static byte[] decode(String encoded)
@@ -22,8 +21,7 @@ final class FilterSounds
     private static void validate(byte[] bytes)
     {
         if (bytes.length > 1000000) throw new IllegalArgumentException("Sound exceeds 1 MB");
-        // Inspect bounded container metadata only. RuneLite AudioPlayer owns all
-        // decoding and playback; importing a file never opens an audio device.
+
         if (id(bytes, 0, "RIFF") && id(bytes, 8, "WAVE")) wave(bytes);
         else if (id(bytes, 0, "FORM") && (id(bytes, 8, "AIFF") || id(bytes, 8, "AIFC"))) aiff(bytes);
         else if (id(bytes, 0, ".snd")) au(bytes);
@@ -48,7 +46,7 @@ final class FilterSounds
                 frameSize = u16(b, body + 12, true);
                 if (code == 0xfffe)
                 {
-                    // WAVE_FORMAT_EXTENSIBLE's standard PCM/float GUID tail.
+
                     if (size < 40 || u16(b, body + 16, true) < 22
                         || u32(b, body + 26, true) != 0 || u16(b, body + 30, true) != 0x10
                         || u32(b, body + 32, false) != 0x800000aaL

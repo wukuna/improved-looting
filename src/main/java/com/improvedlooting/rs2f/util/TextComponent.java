@@ -1,4 +1,3 @@
-// Adapted from riktenx/loot-filters (BSD-2-Clause); see loot-filters-LICENSE.txt.
 package com.improvedlooting.rs2f.util;
 
 import com.improvedlooting.rs2f.model.TextAccent;
@@ -10,8 +9,6 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 
-// simplified version of runelite's TextComponent API for our purposes, adding support for _no_ text accent as well as
-// text accent color
 @Setter
 public class TextComponent implements RenderableEntity {
     private String text;

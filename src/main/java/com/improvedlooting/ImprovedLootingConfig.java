@@ -3,7 +3,6 @@ package com.improvedlooting;
 import java.awt.Color;
 import net.runelite.client.config.*;
 
-/** The side panel is the single home for these controls. */
 @ConfigGroup(ImprovedLootingConfig.GROUP)
 public interface ImprovedLootingConfig extends Config
 {
@@ -45,7 +44,7 @@ public interface ImprovedLootingConfig extends Config
     @ConfigItem(keyName="cardTheme",name="Card theme",description="Configured in the side panel",hidden=true)
     default CardTheme cardTheme(){return CardTheme.NATIVE;}
     @ConfigItem(keyName="cardBackgroundColor",name="Card background color",description="Configured in the side panel",hidden=true)
-    default Color cardBackgroundColor(){return null;} // Unset follows the selected theme's color.
+    default Color cardBackgroundColor(){return null;}
     enum DetailMode {
         HIDDEN("Hidden"), RULES("Follow rules"), ALWAYS("Always");
         private final String label;

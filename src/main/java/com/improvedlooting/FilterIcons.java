@@ -101,8 +101,7 @@ class FilterIcons {
  ItemFacts facts(Tile tile,TileItem item) {
   ItemComposition c=items.getItemComposition(item.getId());
   ItemComposition note=c.getLinkedNoteId()<0 ? null : items.getItemComposition(c.getLinkedNoteId());
-  // Fresh ensouled drops have a temporary untradeable ID. Restrict this
-  // conversion to RuneLite's explicit head mappings, not every repair/value mapping.
+
   ItemComposition market=c;
   Collection<ItemMapping> mappings=ItemMapping.map(item.getId());
   if(mappings!=null)for(ItemMapping mapping:mappings)if(mapping.name().startsWith("ITEM_ENSOULED_")) {
@@ -125,7 +124,7 @@ class FilterIcons {
    if(item.getId()!=entry.getIdentifier()) continue;
    ItemFacts facts=facts(tile,item);
    BufferedImageProvider icon=p.program.find(facts);
-   if(found && !Objects.equals(chosen,icon)) return null; // Menu cannot distinguish ambiguous stacks.
+   if(found && !Objects.equals(chosen,icon)) return null;
    chosen=icon; found=true;
   }
   if(chosen==null) return null;

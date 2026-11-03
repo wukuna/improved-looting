@@ -32,7 +32,7 @@ public class LootProfilesTest
         when(p.icons.configs.getConfiguration(ImprovedLootingConfig.GROUP,LootPreferences.KEY)).thenReturn(saved);
         assertEquals(LootPreferences.Action.HIDE,p.preferences.action(1,"Abyssal Sire"));assertEquals(LootPreferences.Action.FILTER,p.preferences.action(1,null));
         p.preferences.set(1,LootPreferences.Action.SHOW,"Boss supplies");
-        // ConfigManager mock does not retain writes; read the validated payload actually saved.
+
         org.mockito.ArgumentCaptor<String> raw=org.mockito.ArgumentCaptor.forClass(String.class);verify(p.icons.configs,times(2)).setConfiguration(eq(ImprovedLootingConfig.GROUP),eq(LootPreferences.KEY),raw.capture());when(p.icons.configs.getConfiguration(ImprovedLootingConfig.GROUP,LootPreferences.KEY)).thenReturn(raw.getValue());assertEquals(LootPreferences.Action.SHOW,p.preferences.action(1,"Abyssal Sire"));assertEquals("Boss supplies",p.preferences.category(1));
     }
     @Test public void blankConfigurationLoadsDefaultAndUndoRestoresDefault()

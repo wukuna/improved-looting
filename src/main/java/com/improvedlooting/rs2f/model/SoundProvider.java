@@ -1,6 +1,6 @@
 package com.improvedlooting.rs2f.model;
 import com.improvedlooting.rs2f.lang.Token;
-/** Parsed audio reference; playback belongs to the optional ground-loot runtime. */
+
 @lombok.Value
 public final class SoundProvider {
  Integer effect;

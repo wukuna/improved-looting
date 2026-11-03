@@ -7,7 +7,6 @@ import java.util.Locale;
 import net.runelite.client.ui.FontManager;
 import static com.improvedlooting.ImprovedLootingConfig.CardTheme;
 
-/** The production single-row card renderer, also used for off-screen visual checks. */
 final class LootCardPainter
 {
     static final Color BACKGROUND=new Color(23,27,32,235),TEXT=new Color(236,239,243),VALUE=new Color(177,187,199);

@@ -8,7 +8,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.client.config.ConfigManager;
 
-/** Explicit user overrides, separate from imported RS2F source. */
 @Singleton
 final class LootPreferences
 {

@@ -4,7 +4,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import com.improvedlooting.rs2f.lang.*;
 import com.improvedlooting.rs2f.model.*;
-/** RS2F icon-only evaluator: apply merges icon values; rule/if stop on first match. */
+
 public final class LootFilter {
  public final List<FilterRule> rules;
  private LootFilter(List<FilterRule> rules) { this.rules=Collections.unmodifiableList(new ArrayList<>(rules)); }
@@ -50,7 +50,7 @@ public final class LootFilter {
    String preamble=new String(in.readAllBytes(),StandardCharsets.UTF_8);
    String text=(preamble+"\n"+source+"\n").replace("\r\n","\n").replace('\r','\n');
    TokenStream tokens=new Preprocessor(new Lexer("imported filter",text).tokenize()).preprocess();
-   // Bound nesting and negation complexity even though evaluation is iterative.
+
    int depth=0, unary=0;
    for(Token t:tokens.getTokens()) { if(t.is(Token.Type.EXPR_START) && ++depth>64) throw new IllegalArgumentException("Filter nesting exceeds 64"); if(t.is(Token.Type.EXPR_END)) depth--; if(t.is(Token.Type.OP_NOT)) { if(++unary>64) throw new IllegalArgumentException("Excessive negation nesting"); } else if(t.isSemantic()) unary=0; }
    return new Parser(tokens).parse();

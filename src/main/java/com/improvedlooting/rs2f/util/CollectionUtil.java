@@ -1,4 +1,3 @@
-// Adapted from riktenx/loot-filters (BSD-2-Clause); see loot-filters-LICENSE.txt.
 package com.improvedlooting.rs2f.util;
 
 import java.util.ArrayList;
@@ -15,7 +14,7 @@ public class CollectionUtil {
         return newList;
     }
 
-    public static <E> int[] findBounds(List<E> list, Predicate<E> predicate) { // [start, end)
+    public static <E> int[] findBounds(List<E> list, Predicate<E> predicate) {
         var indices = new int[]{-1, -1};
         for (var i = 0; i < list.size(); ++i) {
             if (indices[0] == -1 && predicate.test(list.get(i))) {

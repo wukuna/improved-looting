@@ -1,4 +1,3 @@
-// Adapted from riktenx/loot-filters (BSD-2-Clause); see loot-filters-LICENSE.txt.
 package com.improvedlooting.rs2f.lang;
 
 import lombok.AllArgsConstructor;
@@ -13,16 +12,13 @@ import java.util.stream.Collectors;
 import static com.improvedlooting.rs2f.util.CollectionUtil.append;
 import static com.improvedlooting.rs2f.util.TextUtil.quote;
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !! DO NOT add features to the RS2F language without consulting Rikten X first. !!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @RequiredArgsConstructor
 public class Preprocessor {
     private final TokenStream tokens;
     private int expansionSteps;
 
     private final Map<String, Define> defines = new HashMap<>();
-    private final List<Token> preproc = new ArrayList<>(); // pre-expansion w/ all preproc lines removed
+    private final List<Token> preproc = new ArrayList<>();
 
     public TokenStream preprocess() throws PreprocessException {
         while (tokens.isNotEmpty()) {
@@ -91,11 +87,9 @@ public class Preprocessor {
                 } else {
                     var defineTokens = define.value.stream().map(
                                     macroToken -> {
-                                        // the location data for this token is:
-                                        // 1. the location of the original token that will be replaced
-                                        // 2. with the macroSourceLocation for the replacementToken we'll be inserting
+
                                         var newLocation = token.getLocation().withMacroSourceLocation(macroToken.getLocation().withMacroName(define.name));
-                                        // create a copy of the macro location with the updated location
+
                                         return macroToken.withLocation(newLocation);
                                     })
                             .collect(Collectors.toList());

@@ -8,7 +8,6 @@ import java.util.function.Consumer;
 import javax.swing.*;
 import net.runelite.client.util.Filepath;
 
-/** A modeless settings window. Large backups never become Swing text documents. */
 final class LootProfilesEditor
 {
     private final LootProfiles profiles;
@@ -82,7 +81,7 @@ final class LootProfilesEditor
         if(!valid()||busy)return;LootProfiles.Setup snapshot=profiles.capture();
         background("Exporting settings… You can keep playing.",()->{
             String raw=profiles.encode(snapshot);
-            // Never silently overwrite an existing backup selected in the chooser.
+
             try(Writer writer=file.openBufferedWriter(java.nio.file.StandardOpenOption.CREATE_NEW,java.nio.file.StandardOpenOption.WRITE)){writer.write(raw);}
             return raw.length();
         },size->status.setText("Settings exported ("+size+" characters). Import this file in the destination profile."));
@@ -133,7 +132,7 @@ final class LootProfilesEditor
         },raw->{
             if(!Objects.equals(previous,libraryRaw()))throw new IllegalArgumentException("Saved setups changed. Reopen Settings and try again.");
             profiles.icons.configs.setConfiguration(ImprovedLootingConfig.GROUP,LootProfiles.SAVED,raw);
-            // Update the small name list without parsing the asset-filled library on EDT.
+
             if(remove)saved.removeItem(selected);else{boolean exists=false;for(int i=0;i<saved.getItemCount();i++)exists|=selected.equals(saved.getItemAt(i));if(!exists)saved.addItem(selected);saved.setSelectedItem(selected);}
             confirmDelete=false;delete.setText("Delete");status.setText(remove?"Saved setup removed. Current settings are retained.":"Current setup saved. Use Export settings to move it to another profile.");
         });

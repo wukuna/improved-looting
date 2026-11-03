@@ -3,7 +3,6 @@ package com.improvedlooting;
 import java.awt.Color;
 import net.runelite.api.TileItem;
 
-/** One set of label decisions for both cards and plain labels. */
 final class LootDisplayOptions
 {
     static boolean detail(ImprovedLootingConfig.DetailMode mode,boolean rule)

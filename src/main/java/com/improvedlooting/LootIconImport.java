@@ -3,13 +3,12 @@ package com.improvedlooting;
 import java.util.*;
 import java.util.regex.*;
 
-/** Conservative format reader, not a replacement for Loot Filters' evaluator. */
 final class LootIconImport
 {
     static List<ItemIcons.Assignment> parse(String source)
     {
         if(source.length()>1000000) { throw new IllegalArgumentException("Filter is too large."); }
-        // Remove comments without treating comment markers inside strings as comments.
+
         String clean=source;
         StringBuilder stripped=new StringBuilder();
         boolean quote=false;
@@ -63,7 +62,7 @@ final class LootIconImport
                 a.kind=type.equals("CurrentItem") ? ItemIcons.Kind.CURRENT_ITEM : type.equals("Item") ? ItemIcons.Kind.ITEM : ItemIcons.Kind.SPRITE;
                 a.iconId=iconId; a.spriteIndex=index;
                 if(a.itemId>100000 || iconId>100000 || index>255 || result.size()>=500) { throw unsupported(); }
-                // Terminal rules use the first match. Mixed name/id selectors can overlap.
+
                 if(!result.isEmpty() && result.values().iterator().next().itemId>=0 != (a.itemId>=0)) { throw new IllegalArgumentException("Mixed name and ID rules need manual review; nothing was imported."); }
                 result.putIfAbsent(a.key(),a);
             }
