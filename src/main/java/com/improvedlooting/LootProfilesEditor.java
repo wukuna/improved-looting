@@ -108,7 +108,7 @@ final class LootProfilesEditor
     void review(String label,Callable<String> source)
     {
         if(!valid()||busy)return;LootProfiles.Setup before=profiles.capture();pending=null;
-        background("Checking settings, rules, images and sounds…",()->new Review(profiles.parse(source.call()),before,profiles.encode(before),label),ready->{
+        background("Checking settings, rules, images and sounds…",()->new Review(profiles.parse(source.call()),before,profiles.encodeStored(before),label),ready->{
             pending=ready;apply.setEnabled(true);
             summary.setText(ready.label+"\nReady to replace this profile's Looting settings, rules, tiers, sounds, images and item choices. Missing options return to their defaults.\nUndo keeps the complete previous setup.");
             status.setText("Ready to apply. Current settings have not changed.");

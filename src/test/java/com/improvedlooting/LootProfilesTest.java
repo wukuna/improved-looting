@@ -14,7 +14,7 @@ public class LootProfilesTest
 {
     static LootProfiles profiles()
     {
-        LootProfiles p=new LootProfiles();p.icons=new ItemIcons();p.icons.gson=new Gson();p.icons.configs=mock(ConfigManager.class);p.icons.filters=new FilterIcons();p.icons.filters.gson=p.icons.gson;p.icons.filters.configs=p.icons.configs;p.icons.filters.executor=mock(ScheduledExecutorService.class);p.icons.tiers=new PriceTiers();p.icons.tiers.gson=p.icons.gson;p.preferences=new LootPreferences();p.preferences.gson=p.icons.gson;p.preferences.configs=p.icons.configs;return p;
+        LootProfiles p=new LootProfiles();p.icons=new ItemIcons();p.icons.gson=new Gson();p.icons.configs=mock(ConfigManager.class);p.icons.filters=new FilterIcons();p.icons.filters.gson=p.icons.gson;p.icons.filters.configs=p.icons.configs;p.icons.filters.executor=mock(ScheduledExecutorService.class);p.icons.tiers=new PriceTiers();p.icons.tiers.gson=p.icons.gson;p.icons.tiers.sounds=TierSoundTestFiles.temporary();p.preferences=new LootPreferences();p.preferences.gson=p.icons.gson;p.preferences.configs=p.icons.configs;return p;
     }
     @Test public void backupRoundTripChecksAllAssetsBeforeAnyWrite()
     {

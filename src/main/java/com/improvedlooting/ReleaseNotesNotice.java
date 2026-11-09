@@ -18,13 +18,12 @@ import net.runelite.client.events.ProfileChanged;
 @Singleton
 final class ReleaseNotesNotice
 {
-    static final String RELEASE = "2026-11-02-tier-sound-save";
+    static final String RELEASE = "2026-11-09-tier-sound-storage";
     static final String SEEN_KEY = "releaseNotesShown";
     private static final String[] UPDATES = {
-        "Prioritize visible loot above hidden items in labels and Take menus.",
-        "Fix saving multiple custom tier sounds without false profile-change warnings.",
-        "Keep setup imports and applying reviewed settings working through background profile refreshes.",
-        "Show release changes together in one compact update notice."
+        "Keep custom tier sounds on this computer across restarts and profile changes.",
+        "Show selected sound filenames and report missing files without clearing your tiers.",
+        "Include custom tier sounds in settings exports for another computer."
     };
 
     @Inject private Client client;

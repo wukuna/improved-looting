@@ -18,11 +18,14 @@ final class LootProfiles
     static Set<String> keys(){Set<String> keys=new LinkedHashSet<>(Arrays.asList(BOOLEAN_KEYS));keys.addAll(NUMBERS.keySet());Collections.addAll(keys,"cardTheme","cardBackgroundColor","untradeableColor","priceDisplay","timerDisplay","groundStyle","labelOrder","labelAlignment",FilterIcons.KEY,ItemIcons.KEY,PriceTiers.KEY,LootPreferences.KEY);return keys;}
     Setup capture(){Setup s=new Setup();for(String key:keys())s.settings.put(key,icons.configs.getConfiguration(ImprovedLootingConfig.GROUP,key));return s;}
     String export(){return encode(capture());}
-    String encode(Setup setup){String raw=icons.gson.toJson(setup);if(raw.length()>24000000)throw new IllegalArgumentException("Setup exceeds 24 MB");return raw;}
+    private Setup tierCopy(Setup setup,boolean portable){Setup copy=new Setup();copy.version=setup.version;copy.settings.putAll(setup.settings);if(copy.settings.containsKey(PriceTiers.KEY)){String raw=copy.settings.get(PriceTiers.KEY);copy.settings.put(PriceTiers.KEY,portable?icons.tiers.portable(raw):icons.tiers.stored(raw));}return copy;}
+    String encode(Setup setup){return json(tierCopy(setup,true));}
+    String encodeStored(Setup setup){return json(tierCopy(setup,false));}
+    private String json(Setup setup){String raw=icons.gson.toJson(setup);if(raw.length()>24000000)throw new IllegalArgumentException("Setup exceeds 24 MB");return raw;}
     Setup parse(String raw)
     {
         if(raw==null||raw.length()>24000000)throw new IllegalArgumentException("Setup exceeds 24 MB");
-        try{Setup setup=icons.gson.fromJson(raw,Setup.class);validate(setup);return setup;}
+        try{Setup setup=icons.gson.fromJson(raw,Setup.class);validate(setup);return tierCopy(setup,false);}
         catch(com.google.gson.JsonParseException e){throw new IllegalArgumentException("Invalid setup backup",e);}
     }
     void validate(Setup s)
@@ -75,7 +78,7 @@ final class LootProfiles
     }
     void save(String name){name=name.trim();if(!LootPreferences.validLabel(name,60)||name.isBlank())throw new IllegalArgumentException("Use a name of 1–60 characters");Library l=library();l.presets.put(name,capture());persist(l);}
     void remove(String name){Library l=library();l.presets.remove(name);persist(l);}
-    String encodeLibrary(Library l){String raw=icons.gson.toJson(l);if(raw.length()>24000000||l.presets.size()>12)throw new IllegalArgumentException("Keep at most 12 saved setups and 24 MB total");return raw;}
+    String encodeLibrary(Library l){Library stored=new Library();for(Map.Entry<String,Setup> entry:l.presets.entrySet())stored.presets.put(entry.getKey(),tierCopy(entry.getValue(),false));String raw=icons.gson.toJson(stored);if(raw.length()>24000000||l.presets.size()>12)throw new IllegalArgumentException("Keep at most 12 saved setups and 24 MB total");return raw;}
     private void persist(Library l){icons.configs.setConfiguration(ImprovedLootingConfig.GROUP,SAVED,encodeLibrary(l));}
     String starter(boolean valuable)
     {

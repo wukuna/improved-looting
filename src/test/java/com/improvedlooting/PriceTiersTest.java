@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 
 public class PriceTiersTest
 {
-    private PriceTiers store(){PriceTiers s=new PriceTiers();s.configs=mock(ConfigManager.class);s.gson=new com.google.gson.Gson();s.executor=mock(ScheduledExecutorService.class);return s;}
+    private PriceTiers store(){PriceTiers s=new PriceTiers();s.configs=mock(ConfigManager.class);s.gson=new com.google.gson.Gson();s.executor=mock(ScheduledExecutorService.class);s.sounds=TierSoundTestFiles.temporary();return s;}
     @Test public void boundariesHaveExactlyOneTierAndStackValuesDoNotOverflow() {
         PriceTiers s=store();PriceTiers.Setup data=PriceTiers.defaults();s.prepare(data);
         for(int i=0;i<7;i++){assertEquals(i,PriceTiers.index(data,data.tiers[i].minimum));if(i>0)assertEquals(i-1,PriceTiers.index(data,data.tiers[i].minimum-1));}
@@ -71,7 +71,7 @@ public class PriceTiersTest
             LootAlerts alerts=new LootAlerts();alerts.client=mock(Client.class);alerts.config=mock(ImprovedLootingConfig.class);alerts.notifier=mock(Notifier.class);alerts.audio=mock(AudioPlayer.class);alerts.executor=mock(ScheduledExecutorService.class);
             PriceTiers store=store();PriceTiers.Setup setup=PriceTiers.defaults();setup.tiers[0].sound=sound;
             if(sound==PriceTiers.Sound.CUSTOM){ByteArrayOutputStream out=new ByteArrayOutputStream();AudioSystem.write(new AudioInputStream(new ByteArrayInputStream(new byte[800]),new AudioFormat(8000,8,1,true,false),800),AudioFileFormat.Type.WAVE,out);setup.tiers[0].audio=Base64.getEncoder().encodeToString(out.toByteArray());}
-            store.save(store.prepare(setup));alerts.tiers=store;
+            store.save(store.prepareForSave(setup));alerts.tiers=store;
             when(alerts.config.priceTiersEnabled()).thenReturn(enabled);when(alerts.config.lootSounds()).thenReturn(true);when(alerts.config.alertVolume()).thenReturn(80);when(alerts.client.getTickCount()).thenReturn(100);
             FilterIcons.Prepared filter=new FilterIcons.Prepared();filter.program=com.improvedlooting.rs2f.LootFilter.compile("rule(true){sound=123;}");
             Tile tile=mock(Tile.class);TileItem item=mock(TileItem.class);GroundLoot.Entry entry=new GroundLoot.Entry(tile,item);entry.facts=com.improvedlooting.rs2f.model.ItemFacts.builder().id(385).name("Shark").quantity(1).gePrice(100).build();entry.display=filter.program.evaluate(entry.facts);

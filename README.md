@@ -35,6 +35,8 @@ The same window manages saved setups and starters. Existing saved presets remain
 
 The export includes the current display and alert settings, all seven tiers and their embedded sounds, filter rules and assets, icon assignments and item choices. You do not need to reselect sound or image files on the destination profile. It transfers this plugin's setup only. Imports replace the current setup after validation; changing profiles while a settings window is open requires reopening it.
 
+Custom tier sounds are copied into Improved Looting's storage on this computer when you save. The tier editor shows the selected filenames, and moving or deleting the original files does not remove the saved sounds. RuneLite cloud profiles sync the tier choices and sound references; use **Export settings** and **Import settings** to carry the actual sounds to another computer. Existing embedded tier sounds migrate automatically when they are still present. Missing sounds are reported without clearing your tier choices; reselect the file or import a complete settings export to restore them.
+
 ## Getting started
 
 Enable **Improved Looting** and open its chest side panel. Choose **Loot**, enable **Show ground labels** and select **CARDS**. Cards are the default style; existing ground-display on/off settings are retained. **Text timer** and **Fade picture as loot expires** are independent controls. Choose Loot, Rules or Tools using the tabs and expand the section you need; style-specific controls disable when inapplicable.

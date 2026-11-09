@@ -13,7 +13,7 @@ import net.runelite.client.plugins.*;
 import net.runelite.client.ui.*;
 import net.runelite.client.ui.overlay.OverlayManager;
 
-@PluginDescriptor(name="Improved Looting",description="Loot filters, nearby browser, rule inspector, labels, beams and alerts",tags={"loot","filters","icons","ground"})
+@PluginDescriptor(name="Improved Looting",internalName="improved-looting",description="Loot filters, nearby browser, rule inspector, labels, beams and alerts",tags={"loot","filters","icons","ground"})
 public class ImprovedLootingPlugin extends Plugin
 {
     @Inject private ImprovedLootingConfig config;
@@ -37,6 +37,7 @@ public class ImprovedLootingPlugin extends Plugin
     private volatile boolean active;
     private volatile long lifecycle;
     @Provides ImprovedLootingConfig config(ConfigManager manager) { return manager.getConfig(ImprovedLootingConfig.class); }
+    net.runelite.client.util.Filepath soundDirectory() throws java.io.IOException { return getPluginDirectory().joinSegment("tier-sounds"); }
     @Override protected void startUp()
     {
         long token=++lifecycle;active=true;thread.invoke(()->{if(token==lifecycle){loot.clear();overlay.clear();publisher.clear();}});
@@ -52,6 +53,7 @@ public class ImprovedLootingPlugin extends Plugin
     }
     @Override protected void shutDown()
     {
+        icons.tiers.stop();
         releaseNotes.stop();events.unregister(releaseNotes);
         labelInput.stop();mouseManager.unregisterMouseListener(labelInput);
         long token=++lifecycle;active=false; events.unregister(loot); events.unregister(publisher); overlays.remove(overlay); overlays.remove(cards); thread.invoke(()->{if(token==lifecycle){loot.clear();overlay.clear(); publisher.clear();}});

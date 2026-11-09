@@ -35,7 +35,7 @@ public class PriceTierEditorTest
 
     @Before public void setup() throws Exception
     {
-        store.configs=mock(ConfigManager.class);store.gson=new com.google.gson.Gson();
+        store.configs=mock(ConfigManager.class);store.gson=new com.google.gson.Gson();store.sounds=TierSoundTestFiles.temporary();
         profile.set(profile(42));
         when(store.configs.getProfile()).thenAnswer(i->profile.get());
         when(store.configs.getConfiguration(ImprovedLootingConfig.GROUP,PriceTiers.KEY)).thenAnswer(i->raw.get());
