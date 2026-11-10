@@ -18,19 +18,31 @@ final class LootPileOrder {
     }
 
     static int compare(ItemFacts a, long aq, ItemFacts b, long bq) {
+        return compare(a, aq, b, bq, ImprovedLootingConfig.PriceSource.GE);
+    }
+
+    static int compare(ItemFacts a, long aq, ItemFacts b, long bq, ImprovedLootingConfig.PriceSource source) {
         int category = Integer.compare(category(a), category(b));
-        return category != 0 ? category : Long.compare(PriceTiers.value(b.getGePrice(), bq), PriceTiers.value(a.getGePrice(), aq));
+        return category != 0 ? category : Long.compare(LootValues.value(source, b, bq), LootValues.value(source, a, aq));
     }
 
     static Comparator<GroundLoot.Entry> labels(Predicate<GroundLoot.Entry> hidden) {
+        return labels(hidden, ImprovedLootingConfig.PriceSource.GE);
+    }
+
+    static Comparator<GroundLoot.Entry> labels(Predicate<GroundLoot.Entry> hidden, ImprovedLootingConfig.PriceSource source) {
 
         Map<GroundLoot.Entry, Boolean> visibility = new IdentityHashMap<>();
         return Comparator.comparing((GroundLoot.Entry e) -> visibility.computeIfAbsent(e, hidden::test))
-            .thenComparing((a, b) -> compare(a.facts, a.renderQuantity, b.facts, b.renderQuantity));
+            .thenComparing((a, b) -> compare(a.facts, a.renderQuantity, b.facts, b.renderQuantity, source));
     }
 
     static Map<Integer, Integer> ranks(Collection<GroundLoot.Entry> pile, Predicate<GroundLoot.Entry> hidden) {
-        Comparator<GroundLoot.Entry> order = labels(hidden);
+        return ranks(pile, hidden, ImprovedLootingConfig.PriceSource.GE);
+    }
+
+    static Map<Integer, Integer> ranks(Collection<GroundLoot.Entry> pile, Predicate<GroundLoot.Entry> hidden, ImprovedLootingConfig.PriceSource source) {
+        Comparator<GroundLoot.Entry> order = labels(hidden, source);
         Map<Integer, GroundLoot.Entry> best = new LinkedHashMap<>();
         for (GroundLoot.Entry entry : pile) {
             if (entry.grouped) continue;

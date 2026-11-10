@@ -77,7 +77,7 @@ final class LootAlerts
         PriceTiers.Ready ready = config.priceTiersEnabled() ? tiers.snapshot() : null;
         if (ready != null)
         {
-            int index = PriceTiers.index(ready.setup, PriceTiers.value(entry.facts.getGePrice(), entry.facts.getQuantity()));
+            int index = PriceTiers.index(ready.setup, LootValues.value(config,entry.facts,entry.facts.getQuantity()));
             PriceTiers.Sound mode = ready.setup.tiers[index].sound;
             if (mode != PriceTiers.Sound.RULE) selected = new Sound(mode == PriceTiers.Sound.CUSTOM ? ready.audio[index] : null, null, 100);
         }
@@ -208,7 +208,7 @@ final class LootAlerts
         if (!entry.warningArmed || entry.warned || seconds < 0 || seconds > threshold) return;
         entry.warned = true;
         if (!config.despawnWarnings() || entry.display.isHidden()
-            || PriceTiers.value(entry.facts.getGePrice(), entry.facts.getQuantity()) < Math.max(0, config.despawnMinimum())) return;
+            || LootValues.value(config,entry.facts,entry.facts.getQuantity()) < Math.max(0, config.despawnMinimum())) return;
         String message = entry.facts.getName() + " despawns in " + seconds + "s";
         notifyBounded(message); card(message);
     }

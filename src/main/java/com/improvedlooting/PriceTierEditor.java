@@ -46,10 +46,10 @@ final class PriceTierEditor
         PriceTiers.Setup draft=PriceTiers.copy(current.setup);
         if(!store.status().isEmpty())status.setText(store.status());
         JPanel root=new JPanel(new BorderLayout(10,10));root.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-        JPanel heading=new JPanel(new BorderLayout(8,8));heading.add(new JLabel("<html><b>Seven drop tiers and their sounds</b><br>Total stack GE value. Set each tier's sound beside its color and beam.<br>In Loot → Drop tiers &amp; sounds, enable Tier animations and sounds + Drop sounds for audio.<br>Beams need Loot beams enabled; unchecked tiers can still use explicit rule beams.</html>"),BorderLayout.CENTER);
+        JPanel heading=new JPanel(new BorderLayout(8,8));heading.add(new JLabel("<html><b>Seven drop tiers and their sounds</b><br>Total stack value using your selected Price source (GE or High Alchemy). Set each tier's sound beside its color and beam.<br>In Loot → Drop tiers &amp; sounds, enable Tier animations and sounds + Drop sounds for audio.<br>Beams need Loot beams enabled; unchecked tiers can still use explicit rule beams.</html>"),BorderLayout.CENTER);
         JPanel speed=new JPanel(new FlowLayout());speed.add(new JLabel("Cycle seconds"));JSpinner seconds=new JSpinner(new SpinnerNumberModel(draft.seconds,2,30,1));speed.add(seconds);heading.add(speed,BorderLayout.EAST);root.add(heading,BorderLayout.NORTH);
         JPanel rows=new JPanel(new GridBagLayout());GridBagConstraints c=new GridBagConstraints();c.insets=new Insets(5,5,5,5);c.fill=GridBagConstraints.HORIZONTAL;c.weightx=1;
-        String[] headers={"Tier / GE range","Minimum gp","Text effect","Color","Bold","Beam","Sound","Custom file"};
+        String[] headers={"Tier / value range","Minimum gp","Text effect","Color","Bold","Beam","Sound","Custom file"};
         for(int col=0;col<headers.length;col++){c.gridx=col;c.gridy=0;rows.add(new JLabel(headers[col]),c);}
         for(int i=0;i<7;i++) {
             final int index=i;PriceTiers.Tier tier=draft.tiers[i];c.gridy=i+1;c.gridx=0;ranges[i]=new JLabel();rows.add(ranges[i],c);

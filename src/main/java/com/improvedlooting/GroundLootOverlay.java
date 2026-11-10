@@ -66,7 +66,7 @@ final class GroundLootOverlay extends Overlay
                     }
                 }
                 g.setFont(config.labelFontSize()==0?display.getFont():display.getFont().deriveFont((float)LootAlerts.clamp(config.labelFontSize(),8,32)));
-                PriceTiers.Tier tier=tierSetup==null?null:tierSetup.setup.tiers[PriceTiers.index(tierSetup.setup,PriceTiers.value(entry.facts.getGePrice(),entry.renderQuantity))];
+                PriceTiers.Tier tier=tierSetup==null?null:tierSetup.setup.tiers[PriceTiers.index(tierSetup.setup,LootValues.value(config,entry.facts,entry.renderQuantity))];
                 if(tier!=null && tier.bold)g.setFont(g.getFont().deriveFont(g.getFont().getStyle()|Font.BOLD));
                 String text = entry.facts.getName();
                 text += LootCardPainter.quantity(entry.renderQuantity);

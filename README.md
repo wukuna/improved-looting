@@ -95,3 +95,5 @@ Hold **Alt before opening the menu** to reveal actions. Only ordinary ground act
 Item choices and rule conditions are included in presets, full backups and undo. Existing profiles inherit their current global setting; Alt-click and appearance edits retain separate item menu choices. Select Follow default and save to clear an exact-item choice; remove a conditional rule in the draft to clear it.
 
 Advanced script extension (Improved Looting only): `hideMenu=true` means hide ordinary actions **when the tag is hidden**, `hideMenu=false` means keep them, and omitting it inherits the next default. For example, place `apply(name:"Bones" && gevalue:<=1000) { hideMenu=true; }` before existing appearance rules. Existing RS2F files remain unchanged unless you edit them; other RS2F consumers may not support this additional field.
+
+Choose **Loot → Drop tiers & sounds → Price source** to use Grand Exchange or High Alchemy for built-in tier colors, beams and sounds, displayed values, value limits and loot ordering. GE remains the default. Coins and platinum tokens retain their face value. Explicit GE/HA conditions in imported filters keep their meaning.

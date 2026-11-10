@@ -109,7 +109,7 @@ class FilterIcons {
   }
   long price=item.getId()==995 ? 1 : item.getId()==13204 ? 1000 : items.getItemPrice(item.getId());
   return ItemFacts.builder().id(item.getId()).name(c.getName()).quantity(item.getQuantity()).ownership(item.getOwnership())
-   .accountType(client.getVarbitValue(VarbitID.IRONMAN)).gePrice(price).haPrice(c.getHaPrice()).stackable(c.isStackable()).noted(c.getNote()!=-1)
+   .accountType(client.getVarbitValue(VarbitID.IRONMAN)).gePrice(price).haPrice(c.getNote()!=-1 && note!=null ? note.getHaPrice() : c.getHaPrice()).stackable(c.isStackable()).noted(c.getNote()!=-1)
    .tradeable(market.isTradeable() || note!=null && note.isTradeable()).geTradeable(market.isGeTradeable() || note!=null && note.isGeTradeable())
    .worldPoint(WorldPoint.fromLocalInstance(client,tile.getLocalLocation())).build();
  }

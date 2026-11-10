@@ -15,7 +15,7 @@ final class LootProfiles
     static final class Library { int version=1;Map<String,Setup> presets=new LinkedHashMap<>(); }
     @Inject ItemIcons icons;
     @Inject LootPreferences preferences;
-    static Set<String> keys(){Set<String> keys=new LinkedHashSet<>(Arrays.asList(BOOLEAN_KEYS));keys.addAll(NUMBERS.keySet());Collections.addAll(keys,"cardTheme","cardBackgroundColor","untradeableColor","priceDisplay","timerDisplay","groundStyle","labelOrder","labelAlignment",FilterIcons.KEY,ItemIcons.KEY,PriceTiers.KEY,SpecialDropSounds.KEY,LootPreferences.KEY);return keys;}
+    static Set<String> keys(){Set<String> keys=new LinkedHashSet<>(Arrays.asList(BOOLEAN_KEYS));keys.addAll(NUMBERS.keySet());Collections.addAll(keys,"cardTheme","cardBackgroundColor","untradeableColor","priceSource","priceDisplay","timerDisplay","groundStyle","labelOrder","labelAlignment",FilterIcons.KEY,ItemIcons.KEY,PriceTiers.KEY,SpecialDropSounds.KEY,LootPreferences.KEY);return keys;}
     Setup capture(){Setup s=new Setup();for(String key:keys())s.settings.put(key,icons.configs.getConfiguration(ImprovedLootingConfig.GROUP,key));return s;}
     String export(){return encode(capture());}
     private Setup tierCopy(Setup setup,boolean portable){Setup copy=new Setup();copy.version=setup.version;copy.settings.putAll(setup.settings);if(copy.settings.containsKey(PriceTiers.KEY)){String raw=copy.settings.get(PriceTiers.KEY);copy.settings.put(PriceTiers.KEY,portable?icons.tiers.portable(raw):icons.tiers.stored(raw));}if(copy.settings.get(SpecialDropSounds.KEY)!=null){String raw=copy.settings.get(SpecialDropSounds.KEY);copy.settings.put(SpecialDropSounds.KEY,portable?icons.tiers.specials.portable(raw):icons.tiers.specials.stored(raw));}return copy;}
@@ -36,6 +36,7 @@ final class LootProfiles
             String key=e.getKey(),value=e.getValue();if(value==null)continue;
             if(Arrays.asList(BOOLEAN_KEYS).contains(key)&&!value.equals("true")&&!value.equals("false"))throw new IllegalArgumentException("Invalid switch: "+key);
             if(NUMBERS.containsKey(key)){try{int n=Integer.parseInt(value);int[] bounds=NUMBERS.get(key);if(n<bounds[0]||n>bounds[1]||key.equals("labelFontSize")&&n>0&&n<8)throw new NumberFormatException();}catch(NumberFormatException ex){throw new IllegalArgumentException("Out of range: "+key);}}
+            if(key.equals("priceSource"))ImprovedLootingConfig.PriceSource.valueOf(value);
             if(key.equals("labelOrder"))ImprovedLootingConfig.LabelOrder.valueOf(value);
             if(key.equals("priceDisplay") || key.equals("timerDisplay"))ImprovedLootingConfig.DetailMode.valueOf(value);
             if(key.equals("cardTheme"))ImprovedLootingConfig.CardTheme.valueOf(value);
@@ -90,6 +91,7 @@ final class LootProfiles
         FilterIcons.Bundle b=new FilterIcons.Bundle();b.compressedSource=FilterIcons.compress(valuable?
             "rule(gevalue:>=100000) {textColor=\"#ffcf60\"; icon=CurrentItem(); showValue=true; showDespawn=true; showLootbeam=true; notify=true;}\nrule(gevalue:>=1000) {showValue=true; showDespawn=true;}\nrule(true) {hideOverlay=true;}":
             "apply(true) {showValue=true; showDespawn=true; icon=CurrentItem();}\nrule(gevalue:>=100000) {textColor=\"#ffcf60\"; showLootbeam=true;}");
+        if ("HIGH_ALCHEMY".equals(s.settings.get("priceSource"))) b.compressedSource=FilterIcons.compress(FilterIcons.source(b).replace("gevalue:","havalue:"));
         s.settings.put(FilterIcons.KEY,icons.gson.toJson(b));s.settings.put(LootPreferences.KEY,null);return icons.gson.toJson(s);
     }
     String groundItemsPreview()

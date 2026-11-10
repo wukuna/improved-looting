@@ -17,10 +17,15 @@ final class LootResolution
     static String explain(FilterIcons.Prepared filter, ItemFacts facts, DisplayConfig finalDisplay,
         LootPreferences.Action override, String source, int seconds)
     {
+        return explain(filter, facts, finalDisplay, override, source, seconds, ImprovedLootingConfig.PriceSource.GE);
+    }
+    static String explain(FilterIcons.Prepared filter, ItemFacts facts, DisplayConfig finalDisplay,
+        LootPreferences.Action override, String source, int seconds, ImprovedLootingConfig.PriceSource prices)
+    {
         StringBuilder out = new StringBuilder();
         out.append(facts.getName()).append(" (#").append(facts.getId()).append(")\n")
-            .append("Quantity: ").append(facts.getQuantity()).append("\nStack GE value: ")
-            .append(PriceTiers.value(facts.getGePrice(), facts.getQuantity())).append(" gp\n")
+            .append("Quantity: ").append(facts.getQuantity()).append(prices == ImprovedLootingConfig.PriceSource.HIGH_ALCHEMY ? "\nStack High Alchemy value: " : "\nStack GE value: ")
+            .append(LootValues.value(prices, facts, facts.getQuantity())).append(" gp\n")
             .append("Ownership: ").append(ownership(facts.getOwnership())).append("\n")
             .append("Source: ").append(source == null ? "Unavailable: RuneLite does not identify each pile’s monster source" : source + " (server loot event)").append("\n")
             .append("Despawn: ").append(seconds < 0 ? "Unknown; not supplied by client" : seconds + " seconds").append("\n\nRule evaluation, highest priority first:\n");

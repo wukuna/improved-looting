@@ -74,7 +74,7 @@ final class GroundLoot
         }
 
         group(pile);
-        return LootPileOrder.ranks(pile,this::labelHidden);
+        return LootPileOrder.ranks(pile,this::labelHidden,config.priceSource());
     }
     int menuRank(Tile tile, int id, int fallback) { return ranks(tile).getOrDefault(id,fallback); }
 
@@ -132,7 +132,7 @@ final class GroundLoot
     {
         for (Entry e : entries.values()) if (e.key == key && prepared != null && e.facts != null)
             return LootResolution.explain(prepared, e.facts, e.display, preferences == null ? LootPreferences.Action.FILTER : preferences.action(e.item.getId(), e.source),
-                e.source, LootResolution.secondsRemaining(e.item.getDespawnTime(), client.getTickCount())) + "\nFinal ground label: "+(labelHidden(e)?"hidden":"visible")+"\nAlt-click label override: "+(preferences==null?null:preferences.labelHidden(e.item.getId()))+"\nItem menu choice: "+LootMenuChoice.of(preferences==null?null:preferences.hideMenu(e.item.getId()))+"\nRule menu choice: "+LootMenuChoice.of(e.display.getHideMenu())+"\nOrdinary menu actions: "+(menuHidden(e)?"hidden (Alt reveals)":"kept")+"\nMinimum label value: "+config.minimumLabelValue()+" gp\nBeam on this tile: "+beamTiles.contains(e.tile) + (icons.find(e.item.getId())==null?"":"\nManual icon override: "+icons.find(e.item.getId()));
+                e.source, LootResolution.secondsRemaining(e.item.getDespawnTime(), client.getTickCount()), config.priceSource()) + "\nFinal ground label: "+(labelHidden(e)?"hidden":"visible")+"\nAlt-click label override: "+(preferences==null?null:preferences.labelHidden(e.item.getId()))+"\nItem menu choice: "+LootMenuChoice.of(preferences==null?null:preferences.hideMenu(e.item.getId()))+"\nRule menu choice: "+LootMenuChoice.of(e.display.getHideMenu())+"\nOrdinary menu actions: "+(menuHidden(e)?"hidden (Alt reveals)":"kept")+"\nMinimum label value: "+config.minimumLabelValue()+" gp\nBeam on this tile: "+beamTiles.contains(e.tile) + (icons.find(e.item.getId())==null?"":"\nManual icon override: "+icons.find(e.item.getId()));
         return "This pile is no longer nearby. Refresh the browser.";
     }
     DisplayConfig resolved(Tile tile, TileItem item)
@@ -148,11 +148,11 @@ final class GroundLoot
     boolean reveal() { return client.isKeyPressed(KeyCode.KC_ALT); }
     boolean labelHidden(Entry e) {
         Boolean manual=preferences==null?null:preferences.labelHidden(e.item.getId());
-        return LootDisplayOptions.ownershipHidden(config,e) || LootDisplayOptions.hidden(e.display.isHideOverlay(),manual,PriceTiers.value(e.facts.getGePrice(),e.renderQuantity),LootDisplayOptions.minimum(config,e));
+        return LootDisplayOptions.ownershipHidden(config,e) || LootDisplayOptions.hidden(e.display.isHideOverlay(),manual,LootValues.value(config,e.facts,e.renderQuantity),LootDisplayOptions.minimum(config,e));
     }
     boolean locallyHidden(Entry e) {
         Boolean manual=preferences==null?null:preferences.labelHidden(e.item.getId());
-        return LootDisplayOptions.ownershipHidden(config,e) || LootDisplayOptions.hidden(false,manual,PriceTiers.value(e.facts.getGePrice(),e.renderQuantity),LootDisplayOptions.minimum(config,e));
+        return LootDisplayOptions.ownershipHidden(config,e) || LootDisplayOptions.hidden(false,manual,LootValues.value(config,e.facts,e.renderQuantity),LootDisplayOptions.minimum(config,e));
     }
     double renderTick() { return client.getTickCount() + (lastTickNanos == 0 ? 0 : Math.min(1, (System.nanoTime()-lastTickNanos)/600000000.0)); }
 
@@ -307,16 +307,16 @@ final class GroundLoot
         Comparator<Entry> sorting = order == ImprovedLootingConfig.LabelOrder.NAME ? byName
             : order == ImprovedLootingConfig.LabelOrder.DISTANCE ? Comparator.comparingInt(e -> e.distance)
             : order == ImprovedLootingConfig.LabelOrder.TIME ? Comparator.comparingInt(e -> e.item.getDespawnTime() <= 0 ? Integer.MAX_VALUE : e.item.getDespawnTime())
-            : Comparator.<Entry>comparingLong(e -> PriceTiers.value(e.facts.getGePrice(), e.facts.getQuantity())).reversed();
+            : Comparator.<Entry>comparingLong(e -> LootValues.value(config,e.facts,e.facts.getQuantity())).reversed();
         nearby.sort(sorting.thenComparing(byName).thenComparingLong(e -> e.key)); ordered = nearby;
         group(nearby);
-        if(config.groupStacks() && order==ImprovedLootingConfig.LabelOrder.VALUE)nearby.sort(Comparator.<Entry>comparingLong(e->PriceTiers.value(e.facts.getGePrice(),e.renderQuantity)).reversed().thenComparing(byName).thenComparingLong(e->e.key));
-        if(config.prioritizeLoot())nearby.sort(LootPileOrder.labels(this::labelHidden).thenComparing(byName).thenComparingLong(e->e.key));
+        if(config.groupStacks() && order==ImprovedLootingConfig.LabelOrder.VALUE)nearby.sort(Comparator.<Entry>comparingLong(e->LootValues.value(config,e.facts,e.renderQuantity)).reversed().thenComparing(byName).thenComparingLong(e->e.key));
+        if(config.prioritizeLoot())nearby.sort(LootPileOrder.labels(this::labelHidden,config.priceSource()).thenComparing(byName).thenComparingLong(e->e.key));
         List<LootRow> next = new ArrayList<>();
         for (Entry e : nearby)
         {
             if(next.size() >= 512) break;
-            next.add(new LootRow(e.key, e.item.getId(), e.facts.getQuantity(), PriceTiers.value(e.facts.getGePrice(), e.facts.getQuantity()),
+            next.add(new LootRow(e.key, e.item.getId(), e.facts.getQuantity(), LootValues.value(config,e.facts,e.facts.getQuantity()),
                 e.distance, LootResolution.secondsRemaining(e.item.getDespawnTime(), client.getTickCount()), e.facts.getName(),
                 preferences == null ? "" : preferences.category(e.item.getId()), e.source, null, labelHidden(e), e.image));
         }
@@ -346,10 +346,10 @@ final class GroundLoot
         if(groundAllowed && config.lootBeams()){
             PriceTiers.Ready ready=tiers==null?null:tiers.snapshot();PriceTiers.Setup setup=ready==null?null:ready.setup;
             List<Entry> candidates=new ArrayList<>();
-            for(Entry e:ordered)if(!e.grouped && !locallyHidden(e) && inRange(e,24) && beamColor(e.display,PriceTiers.value(e.facts.getGePrice(),e.renderQuantity),setup)!=null)candidates.add(e);
-            candidates.sort(Comparator.<Entry>comparingLong(e->PriceTiers.value(e.facts.getGePrice(),e.renderQuantity)).reversed().thenComparingLong(e->e.key));
+            for(Entry e:ordered)if(!e.grouped && !locallyHidden(e) && inRange(e,24) && beamColor(e.display,LootValues.value(config,e.facts,e.renderQuantity),setup)!=null)candidates.add(e);
+            candidates.sort(Comparator.<Entry>comparingLong(e->LootValues.value(config,e.facts,e.renderQuantity)).reversed().thenComparingLong(e->e.key));
             Set<Tile> selected=Collections.newSetFromMap(new IdentityHashMap<>());
-            for(Entry e:candidates){if(selected.add(e.tile)){desired.put(e,beamColor(e.display,PriceTiers.value(e.facts.getGePrice(),e.renderQuantity),setup));if(desired.size()==64)break;}}
+            for(Entry e:candidates){if(selected.add(e.tile)){desired.put(e,beamColor(e.display,LootValues.value(config,e.facts,e.renderQuantity),setup));if(desired.size()==64)break;}}
         }
 
         for(Entry e:entries.values())if(!desired.containsKey(e) || !Objects.equals(e.beamColor,desired.get(e)))beamOff(e);

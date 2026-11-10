@@ -62,7 +62,7 @@ final class GroundLootCards
                 int width=LootAlerts.clamp(config.cardWidth(),120,2048);
                 if(config.cardAutoWidth() || config.lootCompact()){
                     width=config.lootCompact()?48:120;
-                    for(GroundLoot.Entry e:entries){long value=PriceTiers.value(e.facts.getGePrice(),e.renderQuantity);PriceTiers.Tier tier=selected.tiers[PriceTiers.index(selected,value)];
+                    for(GroundLoot.Entry e:entries){long value=LootValues.value(config,e.facts,e.renderQuantity);PriceTiers.Tier tier=selected.tiers[PriceTiers.index(selected,value)];
                         width=Math.max(width,LootCardPainter.width(g.getFontMetrics(tier.bold?bold:plain),size,config.lootCompact()?"":e.facts.getName(),e.renderQuantity,LootDisplayOptions.price(config,e),config.cardShortPrices(),seconds(e)));}
                 }
                 width=Math.min(viewport.width,width);
@@ -79,7 +79,7 @@ final class GroundLootCards
                 if(hover){expanded=tile;expandedBounds=box.union(collapsed);}
                 if(Math.abs(box.x+width/2-anchor.getX())>10 || Math.abs(box.y+box.height-anchor.getY())>12){g.setColor(new Color(180,190,200,90));g.drawLine(box.x+width/2,box.y+box.height,anchor.getX(),anchor.getY());}
                 for(int i=0;i<count;i++){
-                    GroundLoot.Entry e=entries.get(i);long value=PriceTiers.value(e.facts.getGePrice(),e.renderQuantity);
+                    GroundLoot.Entry e=entries.get(i);long value=LootValues.value(config,e.facts,e.renderQuantity);
                     PriceTiers.Tier tier=selected.tiers[PriceTiers.index(selected,value)];g.setFont(tier.bold?bold:plain);
                     int rowWidth=width;
                     if(config.cardIndividualWidth() && (config.cardAutoWidth() || config.lootCompact()))rowWidth=Math.min(width,Math.max(config.lootCompact()?48:120,

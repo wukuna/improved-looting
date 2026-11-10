@@ -51,7 +51,7 @@ final class ImprovedLootingPanel extends PluginPanel
         hint(toggle(details,"Color strip despawn timer","railDespawnTimer",config::railDespawnTimer),"Drain the left color strip from top to bottom. Cards only; independent of the picture fade and text timer.");
         JPanel visibility=disclosure(display,"Visibility and menus…");
         hint(toggle(visibility,"Only show owned drops","onlyShowOwnedDrops",config::onlyShowOwnedDrops),"Show your drops and shared Group Ironman loot, using the game's ownership flag. Public/unowned and other-player drops are hidden, including beams and alerts. Hold Alt to reveal hidden labels temporarily.");
-        hint(number(visibility,"Minimum value to appear (gp)","minimumLabelValue",config::minimumLabelValue,0,Integer.MAX_VALUE),"Minimum GE value for the visible stack. 0 shows all values; manually shown items bypass the minimum.");
+        hint(number(visibility,"Minimum value to appear (gp)","minimumLabelValue",config::minimumLabelValue,0,Integer.MAX_VALUE),"Minimum value for the visible stack using your selected Price source. 0 shows all values; manually shown items bypass the minimum.");
         hint(toggle(visibility,"Keep untradeables visible","keepUntradeablesVisible",config::keepUntradeablesVisible),"Untradeable items bypass the minimum value, including items with no GE price. Your ownership filter and explicit hide rules still apply.");
         untradeableColor(visibility,config);
         hint(toggle(visibility,"Hide filtered items in menus","hideHiddenMenuItems",config::hideHiddenMenuItems),"Default for hidden tags without an item or rule menu choice. Item choices override matching rules; rules override this checkbox. Alt reveals ordinary actions. Targeting and custom actions are preserved.");
@@ -61,7 +61,7 @@ final class ImprovedLootingPanel extends PluginPanel
         button(visibility,"Nearby loot / hidden labels",()->{if(browser!=null)browser.close();browser=new LootBrowser(loot,icons,thread,preferences);browser.open(this);});
         JPanel ordering=disclosure(display,"Pile order and range…");
         toggle(ordering,"Group matching stacks on a tile","groupStacks",config::groupStacks);
-        hint(toggle(ordering,"Prioritize valuable loot","prioritizeLoot",config::prioritizeLoot),"Visible loot comes before hidden loot. Within each group: normal loot by total GE value, bones/ashes, then untradeables. Applies to cards, labels and left/right-click Take order. Overrides Item order and filter menu sorting while enabled. Other actions and item/spell targeting retain their priority.");
+        hint(toggle(ordering,"Prioritize valuable loot","prioritizeLoot",config::prioritizeLoot),"Visible loot comes before hidden loot. Within each group: normal loot by total value using your selected Price source, bones/ashes, then untradeables. Applies to cards, labels and left/right-click Take order. Overrides Item order and filter menu sorting while enabled. Other actions and item/spell targeting retain their priority.");
         hint(choice(ordering,"Item order","labelOrder",ImprovedLootingConfig.LabelOrder.values(),config::labelOrder),"Used when Prioritize valuable loot is off.");
         choice(ordering,"Alignment at the pile","labelAlignment",ImprovedLootingConfig.LabelAlignment.values(),config::labelAlignment);
         number(ordering,"Range (tiles)","labelRange",config::labelRange,1,64);
@@ -86,6 +86,7 @@ final class ImprovedLootingPanel extends PluginPanel
         hint(number(cardStyle,"Rows before expanding (0: all)","cardRows",config::cardRows,0,20),"Rows shown per pile; hover to expand. 0 shows all rows that fit.");
         JPanel labelStyle=column();section(labelStyle,"Labels only");appearance.add(labelStyle);
         hint(number(labelStyle,"Picture size (pixels)","iconSize",config::iconSize,12,96),"Labels mode only. Rules select the picture, border and background.");
+        hint(choice(tiers,"Price source","priceSource",ImprovedLootingConfig.PriceSource.values(),config::priceSource),"Use GE or High Alchemy for displayed values, built-in tier colors/sounds/beams, value limits and ordering. Explicit GE/HA filter rules keep their meaning.");
         hint(button(tiers,"Edit tiers and sounds…",()->{if(tierEditor!=null)tierEditor.close();tierEditor=new PriceTierEditor(icons.tiers,icons.audio);tierEditor.open(this);}),"Set seven price tiers and Special drops: untradeables, collection logs, pets, clue difficulties and item sound overrides.");
         hint(toggle(tiers,"Loot beams","lootBeams",config::lootBeams),"Show beams enabled by your rules or price tiers.");
         hint(toggle(tiers,"Tier animations and sounds","priceTiersEnabled",config::priceTiersEnabled),"Adds tier effects. Colors, bold and beams work independently. Tier audio needs both this switch and Drop sounds below.");

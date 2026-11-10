@@ -24,6 +24,15 @@ public interface ImprovedLootingConfig extends Config
     @ConfigItem(keyName="shareMenuIcons",name="Share menu icons",description="Configured in the side panel",hidden=true)
     default boolean shareMenuIcons() { return false; }
 
+    enum PriceSource {
+        GE("Grand Exchange"), HIGH_ALCHEMY("High Alchemy");
+        private final String label;
+        PriceSource(String label) { this.label = label; }
+        @Override public String toString() { return label; }
+    }
+    @ConfigItem(keyName="priceSource",name="Price source",description="Choose GE or High Alchemy for displayed values, built-in tiers, value limits and loot ordering. Explicit filter conditions keep their GE/HA meaning.",hidden=true)
+    default PriceSource priceSource() { return PriceSource.GE; }
+
     enum LabelOrder { VALUE, DISTANCE, NAME, TIME }
     @ConfigItem(keyName="prioritizeLoot",name="Prioritize valuable loot",description="Visible loot before hidden loot; within each group, normal loot by value, then bones/ashes, then untradeables; labels and left/right-click Take order",hidden=true)
     default boolean prioritizeLoot() { return true; }

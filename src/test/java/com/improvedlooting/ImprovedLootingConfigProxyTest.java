@@ -32,6 +32,7 @@ public class ImprovedLootingConfigProxyTest
 
     @Test public void savedLayoutEnumsRemainReadable() throws Exception
     {
+        for(ImprovedLootingConfig.PriceSource source:ImprovedLootingConfig.PriceSource.values())assertSame(source,proxy(Collections.singletonMap("priceSource",source.name())).priceSource());
         for(ImprovedLootingConfig.LabelOrder order:ImprovedLootingConfig.LabelOrder.values())assertSame(order,proxy(Collections.singletonMap("labelOrder",order.name())).labelOrder());
         for(ImprovedLootingConfig.GroundStyle style:ImprovedLootingConfig.GroundStyle.values())assertSame(style,proxy(Collections.singletonMap("groundStyle",style.name())).groundStyle());
         for(ImprovedLootingConfig.LabelAlignment alignment:ImprovedLootingConfig.LabelAlignment.values())assertSame(alignment,proxy(Collections.singletonMap("labelAlignment",alignment.name())).labelAlignment());
