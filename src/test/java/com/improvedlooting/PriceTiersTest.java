@@ -77,6 +77,7 @@ public class PriceTiersTest
             Tile tile=mock(Tile.class);TileItem item=mock(TileItem.class);GroundLoot.Entry entry=new GroundLoot.Entry(tile,item);entry.facts=com.improvedlooting.rs2f.model.ItemFacts.builder().id(385).name("Shark").quantity(1).gePrice(100).build();entry.display=filter.program.evaluate(entry.facts);
             doAnswer(i->{((Runnable)i.getArgument(0)).run();return null;}).when(alerts.executor).execute(any(Runnable.class));
             alerts.drop(entry,filter);
+            when(alerts.client.getTickCount()).thenReturn(101);alerts.flush();
             verify(alerts.client,times(!enabled || sound==PriceTiers.Sound.RULE?1:0)).playSoundEffect(123,101);
             verify(alerts.audio,times(enabled && sound==PriceTiers.Sound.CUSTOM?1:0)).play(any(InputStream.class),anyFloat());
         }

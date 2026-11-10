@@ -22,6 +22,7 @@ final class PriceTiers
     @Inject Gson gson;
     @Inject ScheduledExecutorService executor;
     @Inject TierSounds sounds;
+    @Inject SpecialDropSounds specials;
     private volatile Ready current;
     private String loaded;
     private long generation;

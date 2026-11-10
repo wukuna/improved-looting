@@ -32,7 +32,7 @@ public class LootRuntimeTest
             TileItem item=mock(TileItem.class);when(item.getId()).thenReturn(id);when(item.getQuantity()).thenReturn(quantity);when(item.getDespawnTime()).thenReturn(expiry);
             when(loot.filters.facts(tile,item)).thenReturn(ItemFacts.builder().id(id).name("Item "+id).quantity(quantity).gePrice(10000).tradeable(true).geTradeable(true).build());return item;
         }
-        void tick(int tick){when(loot.client.getTickCount()).thenReturn(tick);loot.onGameTick(new GameTick());}
+        void tick(int tick){when(loot.client.getTickCount()).thenReturn(tick);loot.onGameTick(new GameTick());loot.alerts.flush();}
     }
     @Test public void existingPilesStaySilentNewDropsWaitOneTickAndDuplicateEventsDoNotAlert()
     {
@@ -64,7 +64,7 @@ public class LootRuntimeTest
     }
     @Test public void soundCooldownIsSharedAcrossDifferentPiles()
     {
-        Fixture f=new Fixture("rule(true){sound=123;}");when(f.loot.config.lootSounds()).thenReturn(true);f.tick(100);f.loot.onItemSpawned(new ItemSpawned(f.tile,f.item(1,1,200)));f.loot.onItemSpawned(new ItemSpawned(f.tile,f.item(2,1,200)));f.tick(101);verify(f.loot.client,times(1)).playSoundEffect(123,101);
+        Fixture f=new Fixture("rule(true){sound=123;}");when(f.loot.config.lootSounds()).thenReturn(true);f.tick(100);f.loot.onItemSpawned(new ItemSpawned(f.tile,f.item(1,1,200)));f.loot.onItemSpawned(new ItemSpawned(f.tile,f.item(2,1,200)));f.tick(101);verify(f.loot.client,never()).playSoundEffect(anyInt(),anyInt());f.tick(102);verify(f.loot.client,times(1)).playSoundEffect(123,101);
     }
     @Test public void densePilesStayBoundedAndProduceBrowserSnapshot()
     {

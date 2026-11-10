@@ -20,6 +20,7 @@ public class ImprovedLootingPlugin extends Plugin
     @Inject private ReleaseNotesNotice releaseNotes;
     @Inject private ItemIcons icons;
     @Inject private GroundLoot loot;
+    @Inject private SpecialLootEvents specialEvents;
     @Inject private GroundLootOverlay overlay;
     @Inject private LootCardsOverlay cards;
     @Inject private LootPreferences preferences;
@@ -40,8 +41,8 @@ public class ImprovedLootingPlugin extends Plugin
     net.runelite.client.util.Filepath soundDirectory() throws java.io.IOException { return getPluginDirectory().joinSegment("tier-sounds"); }
     @Override protected void startUp()
     {
-        long token=++lifecycle;active=true;thread.invoke(()->{if(token==lifecycle){loot.clear();overlay.clear();publisher.clear();}});
-        icons.filters.reload(); icons.tiers.reload(); events.register(loot); events.register(publisher); overlays.add(overlay); overlays.add(cards);
+        long token=++lifecycle;active=true;thread.invoke(()->{if(token==lifecycle){loot.clear();specialEvents.clear();overlay.clear();publisher.clear();}});
+        icons.filters.reload(); icons.tiers.reload(); icons.tiers.specials.reload(); events.register(specialEvents); events.register(loot); events.register(publisher); overlays.add(overlay); overlays.add(cards);
         events.register(releaseNotes);releaseNotes.start();
         labelInput.start();mouseManager.registerMouseListener(labelInput);
         SwingUtilities.invokeLater(()->{
@@ -53,10 +54,10 @@ public class ImprovedLootingPlugin extends Plugin
     }
     @Override protected void shutDown()
     {
-        icons.tiers.stop();
+        icons.tiers.stop(); icons.tiers.specials.stop(); events.unregister(specialEvents);
         releaseNotes.stop();events.unregister(releaseNotes);
         labelInput.stop();mouseManager.unregisterMouseListener(labelInput);
-        long token=++lifecycle;active=false; events.unregister(loot); events.unregister(publisher); overlays.remove(overlay); overlays.remove(cards); thread.invoke(()->{if(token==lifecycle){loot.clear();overlay.clear(); publisher.clear();}});
+        long token=++lifecycle;active=false; events.unregister(loot); events.unregister(publisher); overlays.remove(overlay); overlays.remove(cards); thread.invoke(()->{if(token==lifecycle){loot.clear();specialEvents.clear();overlay.clear(); publisher.clear();}});
         SwingUtilities.invokeLater(()->{if(token==lifecycle)closePanel();});
     }
     @Subscribe public void onConfigChanged(ConfigChanged e)
@@ -67,6 +68,7 @@ public class ImprovedLootingPlugin extends Plugin
         if(LootProfiles.SAVED.equals(e.getKey()) || LootProfiles.UNDO.equals(e.getKey()) || FilterIcons.BACKUP.equals(e.getKey()) || ItemIcons.BACKUP.equals(e.getKey())) return;
         if(FilterIcons.KEY.equals(e.getKey())) icons.filters.reload();
         if(PriceTiers.KEY.equals(e.getKey())) icons.tiers.reload();
+        if(SpecialDropSounds.KEY.equals(e.getKey())) icons.tiers.specials.reload();
         long token=lifecycle;
         thread.invoke(()->{if(token==lifecycle && active){
             if(LootPreferences.KEY.equals(e.getKey()))loot.refreshOverrides();
@@ -78,7 +80,7 @@ public class ImprovedLootingPlugin extends Plugin
     {
         labelInput.reset();
         long token=++lifecycle;
-        icons.filters.reload(); icons.tiers.reload(); thread.invoke(()->{if(token==lifecycle){loot.clear();overlay.clear();publisher.clear();}});
+        icons.filters.reload(); icons.tiers.reload(); icons.tiers.specials.reload(); thread.invoke(()->{if(token==lifecycle){loot.clear();specialEvents.clear();overlay.clear();publisher.clear();}});
         SwingUtilities.invokeLater(()->{if(token!=lifecycle)return;closePanel();if(active) rebuildPanel();});
     }
     @Subscribe public void onGameStateChanged(net.runelite.api.events.GameStateChanged e)

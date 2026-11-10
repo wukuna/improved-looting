@@ -14,6 +14,7 @@ final class PriceTierEditor
     private final AudioPlayer audio;
     private final java.util.function.Function<Component,Filepath> soundChooser;
     private JDialog dialog;
+    private SpecialDropEditor specialEditor;
     private volatile boolean closed;
     private int busy;
     private JButton save;
@@ -26,9 +27,18 @@ final class PriceTierEditor
     void open(Component owner)
     {
         JPanel root=build(owner);if(root==null)return;
-        dialog=new JDialog(SwingUtilities.getWindowAncestor(owner),"Drop tiers and sounds — Improved Looting",Dialog.ModalityType.MODELESS);dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);dialog.addWindowListener(new java.awt.event.WindowAdapter(){public void windowClosed(java.awt.event.WindowEvent e){closed=true;}});dialog.setContentPane(root);dialog.setMinimumSize(new Dimension(880,470));dialog.setSize(1200,580);dialog.setLocationRelativeTo(owner);dialog.setVisible(true);
+        dialog=new JDialog(SwingUtilities.getWindowAncestor(owner),"Drop tiers and sounds — Improved Looting",Dialog.ModalityType.MODELESS);dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);dialog.addWindowListener(new java.awt.event.WindowAdapter(){public void windowClosed(java.awt.event.WindowEvent e){closed=true;if(specialEditor!=null)specialEditor.close();}});dialog.setContentPane(root);dialog.setMinimumSize(new Dimension(880,470));dialog.setSize(1200,580);dialog.setLocationRelativeTo(owner);dialog.setVisible(true);
     }
     JPanel build(Component owner)
+    {
+        JPanel price = buildTiers(owner);
+        if (price == null || store.specials == null) return price;
+        JTabbedPane tabs = new JTabbedPane(); tabs.addTab("Price tiers", price);
+        specialEditor = new SpecialDropEditor(store.specials, store, audio, soundChooser);
+        tabs.addTab("Special drops", specialEditor.build(owner));
+        JPanel root = new JPanel(new BorderLayout()); root.add(tabs); return root;
+    }
+    private JPanel buildTiers(Component owner)
     {
         PriceTiers.Ready current=store.snapshot();
         if(current==null){JOptionPane.showMessageDialog(owner,store.status());return null;}
@@ -72,5 +82,5 @@ final class PriceTierEditor
     private static void fileName(JLabel label,String name){label.setText(name==null?"No custom file":name.length()>30?name.substring(0,27)+"…":name);label.setToolTipText(name);}
     private void updateRanges(){for(int i=0;i<7;i++){if(ranges[i]==null)continue;String end=i==6?"and up":minimum[i+1]==null?"": "to "+java.text.NumberFormat.getIntegerInstance().format(((Number)minimum[i+1].getValue()).longValue()-1);ranges[i].setText("<html>Tier "+(i+1)+"<br>"+end+"</html>");}}
     private void error(Exception ex){status.setText("Not saved: "+(ex.getCause()==null?ex.getMessage():ex.getCause().getMessage()));}
-    void close(){closed=true;if(dialog!=null)dialog.dispose();}
+    void close(){closed=true;if(specialEditor!=null)specialEditor.close();if(dialog!=null)dialog.dispose();}
 }

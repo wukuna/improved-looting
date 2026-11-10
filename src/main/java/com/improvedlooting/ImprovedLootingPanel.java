@@ -86,10 +86,10 @@ final class ImprovedLootingPanel extends PluginPanel
         hint(number(cardStyle,"Rows before expanding (0: all)","cardRows",config::cardRows,0,20),"Rows shown per pile; hover to expand. 0 shows all rows that fit.");
         JPanel labelStyle=column();section(labelStyle,"Labels only");appearance.add(labelStyle);
         hint(number(labelStyle,"Picture size (pixels)","iconSize",config::iconSize,12,96),"Labels mode only. Rules select the picture, border and background.");
-        hint(button(tiers,"Edit tiers and sounds…",()->{if(tierEditor!=null)tierEditor.close();tierEditor=new PriceTierEditor(icons.tiers,icons.audio);tierEditor.open(this);}),"Set all seven value ranges, colors, beams and per-tier sounds together. Choose or preview a custom sound beside its tier.");
+        hint(button(tiers,"Edit tiers and sounds…",()->{if(tierEditor!=null)tierEditor.close();tierEditor=new PriceTierEditor(icons.tiers,icons.audio);tierEditor.open(this);}),"Set seven price tiers and Special drops: untradeables, collection logs, pets, clue difficulties and item sound overrides.");
         hint(toggle(tiers,"Loot beams","lootBeams",config::lootBeams),"Show beams enabled by your rules or price tiers.");
         hint(toggle(tiers,"Tier animations and sounds","priceTiersEnabled",config::priceTiersEnabled),"Adds tier effects. Colors, bold and beams work independently. Tier audio needs both this switch and Drop sounds below.");
-        hint(toggle(tiers,"Drop sounds","lootSounds",config::lootSounds),"Play sounds requested by rules or enabled tiers for new drops. Choose each tier's sound in Edit tiers and sounds above.");
+        hint(toggle(tiers,"Drop sounds","lootSounds",config::lootSounds),"Play sounds requested by rules or enabled tiers for new drops. Choose price-tier and special-drop sounds in Edit tiers and sounds above.");
         number(tiers,"Sound volume (%)","alertVolume",config::alertVolume,0,100);
         number(tiers,"Sound cooldown (s)","soundCooldown",config::soundCooldown,0,60);
         section(rules,"Menu integration");

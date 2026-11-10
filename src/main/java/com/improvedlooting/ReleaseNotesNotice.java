@@ -21,6 +21,8 @@ final class ReleaseNotesNotice
     static final String RELEASE = "2026-11-09-tier-sound-storage";
     static final String SEEN_KEY = "releaseNotesShown";
     private static final String[] UPDATES = {
+        "Add Special drops sounds for untradeables, clue difficulties, collection logs, pets and individual items.",
+        "Choose custom files, existing tier sounds or silence, with pet and collection-log priority.",
         "Keep custom tier sounds on this computer across restarts and profile changes.",
         "Show selected sound filenames and report missing files without clearing your tiers.",
         "Include custom tier sounds in settings exports for another computer."

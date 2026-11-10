@@ -15,10 +15,10 @@ final class LootProfiles
     static final class Library { int version=1;Map<String,Setup> presets=new LinkedHashMap<>(); }
     @Inject ItemIcons icons;
     @Inject LootPreferences preferences;
-    static Set<String> keys(){Set<String> keys=new LinkedHashSet<>(Arrays.asList(BOOLEAN_KEYS));keys.addAll(NUMBERS.keySet());Collections.addAll(keys,"cardTheme","cardBackgroundColor","untradeableColor","priceDisplay","timerDisplay","groundStyle","labelOrder","labelAlignment",FilterIcons.KEY,ItemIcons.KEY,PriceTiers.KEY,LootPreferences.KEY);return keys;}
+    static Set<String> keys(){Set<String> keys=new LinkedHashSet<>(Arrays.asList(BOOLEAN_KEYS));keys.addAll(NUMBERS.keySet());Collections.addAll(keys,"cardTheme","cardBackgroundColor","untradeableColor","priceDisplay","timerDisplay","groundStyle","labelOrder","labelAlignment",FilterIcons.KEY,ItemIcons.KEY,PriceTiers.KEY,SpecialDropSounds.KEY,LootPreferences.KEY);return keys;}
     Setup capture(){Setup s=new Setup();for(String key:keys())s.settings.put(key,icons.configs.getConfiguration(ImprovedLootingConfig.GROUP,key));return s;}
     String export(){return encode(capture());}
-    private Setup tierCopy(Setup setup,boolean portable){Setup copy=new Setup();copy.version=setup.version;copy.settings.putAll(setup.settings);if(copy.settings.containsKey(PriceTiers.KEY)){String raw=copy.settings.get(PriceTiers.KEY);copy.settings.put(PriceTiers.KEY,portable?icons.tiers.portable(raw):icons.tiers.stored(raw));}return copy;}
+    private Setup tierCopy(Setup setup,boolean portable){Setup copy=new Setup();copy.version=setup.version;copy.settings.putAll(setup.settings);if(copy.settings.containsKey(PriceTiers.KEY)){String raw=copy.settings.get(PriceTiers.KEY);copy.settings.put(PriceTiers.KEY,portable?icons.tiers.portable(raw):icons.tiers.stored(raw));}if(copy.settings.get(SpecialDropSounds.KEY)!=null){String raw=copy.settings.get(SpecialDropSounds.KEY);copy.settings.put(SpecialDropSounds.KEY,portable?icons.tiers.specials.portable(raw):icons.tiers.specials.stored(raw));}return copy;}
     String encode(Setup setup){return json(tierCopy(setup,true));}
     String encodeStored(Setup setup){return json(tierCopy(setup,false));}
     private String json(Setup setup){String raw=icons.gson.toJson(setup);if(raw.length()>24000000)throw new IllegalArgumentException("Setup exceeds 24 MB");return raw;}
@@ -47,6 +47,7 @@ final class LootProfiles
             if(key.equals(FilterIcons.KEY)&&!value.isBlank())icons.filters.parse(value);
             if(key.equals(ItemIcons.KEY)&&!value.isBlank())icons.parse(value);
             if(key.equals(PriceTiers.KEY))icons.tiers.parse(value);
+            if(key.equals(SpecialDropSounds.KEY))icons.tiers.specials.parse(value);
             if(key.equals(LootPreferences.KEY))preferences.parse(value);
         }
     }

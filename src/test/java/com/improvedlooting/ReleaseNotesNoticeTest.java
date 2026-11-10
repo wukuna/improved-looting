@@ -44,7 +44,7 @@ public class ReleaseNotesNoticeTest
         verify(chat,times(1)).queue(messages.capture());
         String message=messages.getValue().getRuneLiteFormattedMessage();
         assertTrue(message.contains("custom tier sounds on this computer"));
-        assertEquals(3,message.split("<br>\\* ",-1).length-1);
+        assertEquals(5,message.split("<br>\\* ",-1).length-1);
         assertFalse(message.contains("Recent updates"));
         assertFalse(message.contains("<lt>br<gt>"));
         assertEquals(ReleaseNotesNotice.RELEASE,seen);
