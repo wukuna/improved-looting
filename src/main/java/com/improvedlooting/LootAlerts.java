@@ -44,7 +44,9 @@ final class LootAlerts
     {
         String name;
         final int tick;
-        boolean pet, collection, untradeable, dropSettled;
+        boolean pet, collection, untradeable, dropSettled, pricePending;
+        long value;
+        Long profile;
         Sound rule, price;
         Pending(String name, int tick) { this.name = name; this.tick = tick; }
     }
@@ -85,6 +87,8 @@ final class LootAlerts
         if (next == null) { next = new Pending(entry.facts.getName(), tick); add(next); }
         next.dropSettled |= tick > entry.spawnTick;
         next.untradeable = !entry.facts.isTradeable(); next.rule = rule; next.price = selected;
+        next.value = LootValues.value(config, entry.facts, entry.facts.getQuantity());
+        next.pricePending = config.priceTiersEnabled() && ready == null;
     }
     private Pending matching(String name)
     {
@@ -94,6 +98,7 @@ final class LootAlerts
     }
     private void add(Pending next)
     {
+        next.profile = profile();
         if (pending.size() >= 256)
         {
             Pending ordinary = pending.stream().filter(p -> !p.pet && !p.collection).findFirst().orElse(null);
@@ -118,7 +123,7 @@ final class LootAlerts
             Pending priorPet = pending.stream().filter(p -> p.pet && tick - p.tick <= 5).findFirst().orElse(null);
             if (priorPet != null)
             {
-                if (next != null && next != priorPet) { priorPet.rule = next.rule; priorPet.price = next.price; priorPet.dropSettled |= next.dropSettled; pending.remove(next); }
+                if (next != null && next != priorPet) { priorPet.rule = next.rule; priorPet.price = next.price; priorPet.pricePending = next.pricePending; priorPet.value = next.value; priorPet.dropSettled |= next.dropSettled; pending.remove(next); }
                 next = priorPet;
                 if (!name.isEmpty()) next.name = name;
             }
@@ -150,12 +155,18 @@ final class LootAlerts
     {
         int tick = client.getTickCount();
         if (!config.lootSounds()) { pending.clear(); return; }
+        Long profile = profile();
+        pending.removeIf(p -> !Objects.equals(p.profile, profile) || tick - p.tick > (p.pet || p.collection ? 100 : 5));
         if (specials != null && specials.snapshot() == null) return;
-        pending.removeIf(p -> tick - p.tick > (p.pet || p.collection ? 100 : 5));
         pending.sort(Comparator.comparingInt(this::priority));
         for (Iterator<Pending> it = pending.iterator(); it.hasNext();)
         {
             Pending next = it.next();
+            if (!prepareSound(next))
+            {
+                if (next.pet || next.collection) break;
+                continue;
+            }
             Sound sound = resolve(next);
             boolean audible = sound != null && (sound.bytes != null || sound.effect != null) && sound.volume > 0 && config.alertVolume() > 0;
             if (!next.dropSettled && tick <= next.tick)
@@ -169,6 +180,29 @@ final class LootAlerts
             if (playing.get()) { if (!urgent) it.remove(); continue; }
             play(sound, tick); it.remove();
         }
+    }
+    private boolean prepareSound(Pending item)
+    {
+        SpecialDropSounds.Ready special = specials == null ? null : specials.snapshot();
+        SpecialDropSounds.Choice choice = special == null ? null
+            : SpecialDropSounds.match(special.setup, item.name, item.pet, item.collection, item.untradeable);
+        PriceTiers.Ready ready = tiers == null ? null : tiers.snapshot();
+        if (choice != null) return choice.mode != SpecialDropSounds.Mode.TIER || ready != null;
+        if (!item.pricePending) return true;
+        if (!config.priceTiersEnabled())
+        {
+            item.price = item.rule;
+        }
+        else
+        {
+            if (ready == null) return false;
+            int index = PriceTiers.index(ready.setup, item.value);
+            PriceTiers.Sound mode = ready.setup.tiers[index].sound;
+            item.price = mode == PriceTiers.Sound.RULE ? item.rule
+                : new Sound(mode == PriceTiers.Sound.CUSTOM ? ready.audio[index] : null, null, 100);
+        }
+        item.pricePending = false;
+        return true;
     }
     private int priority(Pending item)
     {
@@ -193,9 +227,10 @@ final class LootAlerts
         {
             if (!playing.compareAndSet(false, true)) return;
             byte[] bytes = sound.bytes; int token = generation; float gain = gain(volume);
+            Long profile = profile();
             lastSound = tick;
             executor.execute(() -> {
-                try { if (token == generation && config.lootSounds()) audio.play(new ByteArrayInputStream(bytes), gain); }
+                try { if (token == generation && Objects.equals(profile, profile()) && config.lootSounds()) audio.play(new ByteArrayInputStream(bytes), gain); }
                 catch (Exception ignored) { }
                 finally { playing.set(false); }
             });
@@ -206,6 +241,7 @@ final class LootAlerts
             lastSound = tick;
         }
     }
+    private Long profile() { return tiers == null ? null : ProfileIdentity.current(tiers.configs); }
     void despawn(GroundLoot.Entry entry, int seconds)
     {
         if (LootDisplayOptions.ownershipHidden(config,entry)) return;

@@ -6,6 +6,10 @@ import net.runelite.client.config.*;
 @ConfigGroup(ImprovedLootingConfig.GROUP)
 public interface ImprovedLootingConfig extends Config
 {
+    @ConfigItem(keyName = "hideSidePanel", name = "Hide side panel", position = -1,
+        description = "Hide the sidebar icon while keeping the plugin enabled. Turn this off here to restore the panel.")
+    default boolean hideSidePanel() { return false; }
+
     String GROUP="improvedlooting";
     @ConfigItem(keyName="priceTiersEnabled",name="Price tier effects",description="Configured in the side panel",hidden=true)
     default boolean priceTiersEnabled() { return false; }

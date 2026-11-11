@@ -19,6 +19,39 @@ import static org.mockito.Mockito.*;
 
 public class MenuProviderTest
 {
+    @Test public void duplicateRequestsShareOneLoadAndCancelledConsumersReleaseCapacity()
+    {
+        Fixture f = new Fixture(); AsyncBufferedImage image = mock(AsyncBufferedImage.class);
+        when(f.provider.icons.items.getImage(385)).thenReturn(image);
+        List<CompletableFuture<BufferedImage>> waiting = new ArrayList<>();
+        for (int i = 0; i < 128; i++) waiting.add(f.supplier(f.request()).get());
+        verify(f.provider.icons.items, times(1)).getImage(385);
+        waiting.forEach(future -> future.cancel(false));
+        ItemIcons.Assignment a = new ItemIcons.Assignment(); a.kind = ItemIcons.Kind.IMAGE; a.itemId = 385;
+        when(f.provider.icons.find(385)).thenReturn(a);
+        when(f.provider.icons.image(a, 385)).thenReturn(new BufferedImage(16, 16, 2));
+        assertNotNull(f.supplier(f.request()).get().join());
+    }
+    @Test public void expiredRequestsReleaseCapacityAndLateCallbacksCannotCompleteReplacement()
+    {
+        Fixture f = new Fixture(); long[] now = {0}; f.provider.clock = () -> now[0];
+        AsyncBufferedImage image = mock(AsyncBufferedImage.class);
+        when(f.provider.icons.items.getImage(anyInt())).thenReturn(image);
+        List<Runnable> ready = new ArrayList<>();
+        doAnswer(i -> { ready.add(i.getArgument(0)); return null; }).when(image).onLoaded(any(Runnable.class));
+        List<CompletableFuture<BufferedImage>> waiting = new ArrayList<>();
+        for (int id = 1; id <= 128; id++)
+        {
+            f.filter("rule(true){icon=Item(" + id + ");}"); waiting.add(f.supplier(f.request()).get());
+        }
+        assertEquals(128, ready.size());
+        now[0] = java.util.concurrent.TimeUnit.SECONDS.toNanos(11);
+        f.provider.onClientTick(new net.runelite.api.events.ClientTick());
+        assertTrue(waiting.stream().allMatch(CompletableFuture::isDone));
+        CompletableFuture<BufferedImage> replacement = f.supplier(f.request()).get();
+        ready.get(127).run(); assertFalse(replacement.isDone());
+        f.provider.clear(); assertNull(replacement.join());
+    }
     static class Fixture
     {
         final MenuIconPublisher provider=new MenuIconPublisher();final Tile tile=mock(Tile.class);final TileItem item=mock(TileItem.class);final WorldView view=mock(WorldView.class);final Scene scene=mock(Scene.class);

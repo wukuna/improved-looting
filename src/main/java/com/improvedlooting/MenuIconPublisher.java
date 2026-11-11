@@ -5,6 +5,8 @@ import com.improvedlooting.rs2f.model.BufferedImageProvider;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import javax.inject.*;
 import net.runelite.api.*;
@@ -23,8 +25,48 @@ final class MenuIconPublisher
     @Inject ImprovedLootingConfig config;
     @Inject EventBus bus;
     private long generation;
-    private final Set<CompletableFuture<BufferedImage>> pending=new HashSet<>();
-    void clear(){generation++;for(CompletableFuture<BufferedImage> future:pending)future.complete(null);pending.clear();bus.post(new PluginMessage("improved-looting","filter-reloaded",Collections.emptyMap()));}
+    private static final int MAX_PENDING = 128;
+    private static final long TIMEOUT = TimeUnit.SECONDS.toNanos(10);
+    LongSupplier clock = System::nanoTime;
+    private final Map<String, Request> pending = new HashMap<>();
+    private static final class Request
+    {
+        final String key;
+        final long generation, started;
+        final Set<CompletableFuture<BufferedImage>> waiting = new HashSet<>();
+        Request(String key, long generation, long started)
+        {
+            this.key = key; this.generation = generation; this.started = started;
+        }
+    }
+    void clear()
+    {
+        generation++;
+        List<Request> requests = new ArrayList<>(pending.values());
+        pending.clear();
+        for (Request request : requests) finish(request, null);
+        bus.post(new PluginMessage("improved-looting", "filter-reloaded", Collections.emptyMap()));
+    }
+    @Subscribe public void onClientTick(net.runelite.api.events.ClientTick event) { expire(); }
+    private void expire()
+    {
+        long now = clock.getAsLong();
+        for (Request request : new ArrayList<>(pending.values()))
+        {
+            request.waiting.removeIf(CompletableFuture::isDone);
+            if (request.waiting.isEmpty() || now - request.started >= TIMEOUT)
+            {
+                pending.remove(request.key, request);
+                finish(request, null);
+            }
+        }
+    }
+    private void finish(Request request, BufferedImage image)
+    {
+        List<CompletableFuture<BufferedImage>> waiting = new ArrayList<>(request.waiting);
+        request.waiting.clear();
+        for (CompletableFuture<BufferedImage> future : waiting) future.complete(image);
+    }
     @Subscribe public void onPluginMessage(PluginMessage event)
     {
         if(!"improved-looting".equals(event.getNamespace())||!client.isClientThread())return;
@@ -53,22 +95,37 @@ final class MenuIconPublisher
         if(current){out.put("type","current-item");out.put("id",id);out.put("quantity",1);}
         else{out.put("type","file");out.put("filename","improved-looting/"+generation+"/"+id+"/"+(assignment==null?icon.toString():assignment.key()));}
         long token=generation;FilterIcons.Prepared filter=icons.filters.snapshot();
+        String key = id + "/" + (assignment == null ? icon.toString() : assignment.key());
         out.put("getImage",(Supplier<CompletableFuture<BufferedImage>>)()->{
             CompletableFuture<BufferedImage> future=new CompletableFuture<>();thread.invokeLater(()->{
-                if(token!=generation||!config.shareMenuIcons()||pending.size()>=128){future.complete(null);return;}pending.add(future);
+                expire();
+                if(future.isDone())return;
+                if(token!=generation||!config.shareMenuIcons()){future.complete(null);return;}
+                Request existing = pending.get(key);
+                if(existing != null)
+                {
+                    if(existing.waiting.size() < MAX_PENDING) existing.waiting.add(future);
+                    else future.complete(null);
+                    return;
+                }
+                if(pending.size() >= MAX_PENDING){future.complete(null);return;}
+                Request request = new Request(key, token, clock.getAsLong());
+                request.waiting.add(future);
+                pending.put(key, request);
                 try{
-                    if(assignment!=null){if(assignment.kind==ItemIcons.Kind.SPRITE)icons.sprites.getSpriteAsync(assignment.iconId,assignment.spriteIndex,image->complete(future,image,token));else completeWhenReady(future,icons.image(assignment,id),token);}
-                    else if(icon instanceof BufferedImageProvider.File)complete(future,filter.images.get(((BufferedImageProvider.File)icon).getFilename()),token);
-                    else if(icon instanceof BufferedImageProvider.Sprite){BufferedImageProvider.Sprite sprite=(BufferedImageProvider.Sprite)icon;if(sprite.getSpriteId()==9000000)complete(future,null,token);else icons.sprites.getSpriteAsync(sprite.getSpriteId(),sprite.getIndex(),image->complete(future,image,token));}
-                    else{int itemId=icon instanceof BufferedImageProvider.Item?((BufferedImageProvider.Item)icon).getItemId():id;completeWhenReady(future,itemId>=0&&itemId<client.getItemCount()?icons.items.getImage(itemId):null,token);}
-                }catch(RuntimeException ex){pending.remove(future);future.complete(null);}
+                    if(assignment!=null){if(assignment.kind==ItemIcons.Kind.SPRITE)icons.sprites.getSpriteAsync(assignment.iconId,assignment.spriteIndex,image->thread.invokeLater(()->complete(request,image)));else completeWhenReady(request,icons.image(assignment,id));}
+                    else if(icon instanceof BufferedImageProvider.File)complete(request,filter.images.get(((BufferedImageProvider.File)icon).getFilename()));
+                    else if(icon instanceof BufferedImageProvider.Sprite){BufferedImageProvider.Sprite sprite=(BufferedImageProvider.Sprite)icon;if(sprite.getSpriteId()==9000000)complete(request,null);else icons.sprites.getSpriteAsync(sprite.getSpriteId(),sprite.getIndex(),image->thread.invokeLater(()->complete(request,image)));}
+                    else{int itemId=icon instanceof BufferedImageProvider.Item?((BufferedImageProvider.Item)icon).getItemId():id;completeWhenReady(request,itemId>=0&&itemId<client.getItemCount()?icons.items.getImage(itemId):null);}
+                }catch(RuntimeException ex){complete(request,null);}
             });return future;});return Collections.unmodifiableMap(out);
     }
-    private void completeWhenReady(CompletableFuture<BufferedImage> future,BufferedImage image,long token){if(image instanceof AsyncBufferedImage)((AsyncBufferedImage)image).onLoaded(()->thread.invokeLater(()->complete(future,image,token)));else complete(future,image,token);}
-    private void complete(CompletableFuture<BufferedImage> future,BufferedImage image,long token)
+    private void completeWhenReady(Request request,BufferedImage image){if(image instanceof AsyncBufferedImage)((AsyncBufferedImage)image).onLoaded(()->thread.invokeLater(()->complete(request,image)));else complete(request,image);}
+    private void complete(Request request,BufferedImage image)
     {
-        pending.remove(future);if(token!=generation||image==null){future.complete(null);return;}
+        if(!pending.remove(request.key, request))return;
+        if(request.generation!=generation||!config.shareMenuIcons()||clock.getAsLong()-request.started>=TIMEOUT||image==null){finish(request,null);return;}
         BufferedImage copy=new BufferedImage(17,15,BufferedImage.TYPE_INT_ARGB);java.awt.Graphics2D g=copy.createGraphics();
-        try{double scale=Math.min(17.0/image.getWidth(),15.0/image.getHeight());int w=Math.max(1,(int)(image.getWidth()*scale)),h=Math.max(1,(int)(image.getHeight()*scale));g.drawImage(image,(17-w)/2,(15-h)/2,w,h,null);}finally{g.dispose();}future.complete(copy);
+        try{double scale=Math.min(17.0/image.getWidth(),15.0/image.getHeight());int w=Math.max(1,(int)(image.getWidth()*scale)),h=Math.max(1,(int)(image.getHeight()*scale));g.drawImage(image,(17-w)/2,(15-h)/2,w,h,null);}finally{g.dispose();}finish(request,copy);
     }
 }

@@ -24,6 +24,7 @@ final class PriceTiers
     @Inject TierSounds sounds;
     @Inject SpecialDropSounds specials;
     private volatile Ready current;
+    private volatile Long currentProfile;
     private String loaded;
     private long generation;
     private volatile String status="";
@@ -77,15 +78,15 @@ final class PriceTiers
         executor.execute(()->{Ready next=null,migrated=null;String message="";
             try{next=prepare(settings(raw),true);message=missing(next);if(embedded(next.setup)&&message.isEmpty())try{migrated=prepareForSave(next.setup);}catch(IllegalArgumentException e){message="Sounds are loaded but could not be preserved: "+e.getMessage();}}
             catch(IllegalArgumentException e){message="Price tiers unavailable: "+e.getMessage();}
-            synchronized(this){if(token!=generation || !Objects.equals(profile,ProfileIdentity.current(configs)) || !Objects.equals(raw,raw()))return;current=next;status=message;}
+            synchronized(this){if(token!=generation || !Objects.equals(profile,ProfileIdentity.current(configs)) || !Objects.equals(raw,raw()))return;currentProfile=profile;current=next;status=message;}
             if(migrated!=null){Ready saved=migrated;javax.swing.SwingUtilities.invokeLater(()->{synchronized(this){if(token==generation&&Objects.equals(profile,ProfileIdentity.current(configs))&&Objects.equals(raw,raw()))save(saved);}});}
         });
     }
-    synchronized void save(Ready ready) {if(embedded(ready.setup))throw new IllegalArgumentException("Save sound files before updating tier settings.");String value=gson.toJson(ready.setup);configs.setConfiguration(ImprovedLootingConfig.GROUP,KEY,value);generation++;loaded=value;current=ready;status="";}
+    synchronized void save(Ready ready) {if(embedded(ready.setup))throw new IllegalArgumentException("Save sound files before updating tier settings.");String value=gson.toJson(ready.setup);configs.setConfiguration(ImprovedLootingConfig.GROUP,KEY,value);generation++;loaded=value;currentProfile=ProfileIdentity.current(configs);current=ready;status="";}
     String raw(){return configs.getConfiguration(ImprovedLootingConfig.GROUP,KEY);}
     String status(){return status;}
     synchronized void stop(){generation++;current=null;}
-    Ready snapshot(){return current;}
+    Ready snapshot(){Ready ready=current;return Objects.equals(currentProfile,ProfileIdentity.current(configs))?ready:null;}
     static int index(Setup setup,long value) {for(int i=6;i>=0;i--)if(value>=setup.tiers[i].minimum)return i;return 0;}
     static long value(long price,long quantity) {if(price<=0 || quantity<=0)return 0;return price>Long.MAX_VALUE/quantity?Long.MAX_VALUE:price*quantity;}
 }

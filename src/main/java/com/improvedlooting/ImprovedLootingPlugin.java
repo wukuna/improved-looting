@@ -39,6 +39,15 @@ public class ImprovedLootingPlugin extends Plugin
     private volatile long lifecycle;
     @Provides ImprovedLootingConfig config(ConfigManager manager) { return manager.getConfig(ImprovedLootingConfig.class); }
     net.runelite.client.util.Filepath soundDirectory() throws java.io.IOException { return getPluginDirectory().joinSegment("tier-sounds"); }
+    private void updateSidePanel()
+    {
+        SwingUtilities.invokeLater(() -> {
+            if (!active || navigation == null) return;
+            if (config.hideSidePanel()) toolbar.removeNavigation(navigation);
+            else toolbar.addNavigation(navigation);
+        });
+    }
+
     @Override protected void startUp()
     {
         long token=++lifecycle;active=true;thread.invoke(()->{if(token==lifecycle){loot.clear();specialEvents.clear();overlay.clear();publisher.clear();}});
@@ -49,7 +58,7 @@ public class ImprovedLootingPlugin extends Plugin
             if(!active || token!=lifecycle) return;
             closePanel();
             panel=new ImprovedLootingPanel(icons,config,loot,migration,thread,preferences,profiles);
-            navigation=NavigationButton.builder().tooltip("Improved Looting").icon(icon()).priority(7).panel(panel).build(); toolbar.addNavigation(navigation);
+            navigation=NavigationButton.builder().tooltip("Improved Looting").icon(icon()).priority(7).panel(panel).build(); if (!config.hideSidePanel()) toolbar.addNavigation(navigation);
         });
     }
     @Override protected void shutDown()
@@ -64,6 +73,7 @@ public class ImprovedLootingPlugin extends Plugin
     {
         if(!ImprovedLootingConfig.GROUP.equals(e.getGroup())) return;
         if(ReleaseNotesNotice.SEEN_KEY.equals(e.getKey())) return;
+        if("hideSidePanel".equals(e.getKey())) { updateSidePanel(); return; }
         labelInput.reset();
         if(LootProfiles.SAVED.equals(e.getKey()) || LootProfiles.UNDO.equals(e.getKey()) || FilterIcons.BACKUP.equals(e.getKey()) || ItemIcons.BACKUP.equals(e.getKey())) return;
         if(FilterIcons.KEY.equals(e.getKey())) icons.filters.reload();
@@ -88,7 +98,7 @@ public class ImprovedLootingPlugin extends Plugin
         if(e.getGameState()!=net.runelite.api.GameState.LOGGED_IN){overlay.clear();labelInput.reset();}
     }
     private void closePanel(){if(panel!=null){panel.close();panel=null;}if(navigation!=null){toolbar.removeNavigation(navigation);navigation=null;}}
-    private void rebuildPanel() { panel=new ImprovedLootingPanel(icons,config,loot,migration,thread,preferences,profiles); navigation=NavigationButton.builder().tooltip("Improved Looting").icon(icon()).priority(7).panel(panel).build(); toolbar.addNavigation(navigation); }
+    private void rebuildPanel() { panel=new ImprovedLootingPanel(icons,config,loot,migration,thread,preferences,profiles); navigation=NavigationButton.builder().tooltip("Improved Looting").icon(icon()).priority(7).panel(panel).build(); if (!config.hideSidePanel()) toolbar.addNavigation(navigation); }
     static BufferedImage icon()
     {
         BufferedImage image=new BufferedImage(24,24,BufferedImage.TYPE_INT_ARGB); Graphics2D g=image.createGraphics();

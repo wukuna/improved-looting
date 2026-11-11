@@ -8,6 +8,8 @@ Make ground loot easier to scan with compact cards or classic labels, seven edit
 
 Example Cards styling with custom tier colors and beams. Values and appearance reflect the setup used for this capture.
 
+To hide the sidebar icon while keeping the plugin running, enable **Hide side panel** in RuneLite’s regular plugin settings. Turn it off there to restore the panel.
+
 ## What you can do
 
 - **Choose Cards or Labels**, Native or OSRS card styling, item pictures, text, colors and optional backgrounds.
