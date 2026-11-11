@@ -38,12 +38,13 @@ public class SpecialLootAlertsTest
         { SpecialDropSounds.Choice choice = setup.categories.get(kind); choice.mode = SpecialDropSounds.Mode.TIER; choice.tier = tier; }
         void save() { alerts.specials.save(alerts.specials.prepareForSave(setup)); }
         void tick(int tick) { when(alerts.client.getTickCount()).thenReturn(tick); events.onGameTick(new GameTick()); }
-        void drop(String name, boolean tradeable)
+        void drop(String name, boolean tradeable) { drop(name, tradeable, alerts.client.getTickCount()); }
+        void drop(String name, boolean tradeable, int spawnTick)
         {
             TileItem item = mock(TileItem.class); when(item.getId()).thenReturn(name.hashCode()); when(item.getOwnership()).thenReturn(TileItem.OWNERSHIP_SELF);
             GroundLoot.Entry e = new GroundLoot.Entry(mock(Tile.class), item);
             e.facts = ItemFacts.builder().id(name.hashCode()).name(name).quantity(1).gePrice(0).tradeable(tradeable).build();
-            e.display = DisplayConfig.builder().build(); alerts.drop(e, new FilterIcons.Prepared());
+            e.spawnTick = spawnTick; e.display = DisplayConfig.builder().build(); alerts.drop(e, new FilterIcons.Prepared());
         }
         void message(ChatMessageType type, String text)
         { events.onChatMessage(new ChatMessage(null, type, "", text, "", 0)); }

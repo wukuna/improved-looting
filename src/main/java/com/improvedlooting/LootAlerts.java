@@ -44,7 +44,7 @@ final class LootAlerts
     {
         String name;
         final int tick;
-        boolean pet, collection, untradeable;
+        boolean pet, collection, untradeable, dropSettled;
         Sound rule, price;
         Pending(String name, int tick) { this.name = name; this.tick = tick; }
     }
@@ -83,6 +83,7 @@ final class LootAlerts
         }
         Pending next = matching(entry.facts.getName());
         if (next == null) { next = new Pending(entry.facts.getName(), tick); add(next); }
+        next.dropSettled |= tick > entry.spawnTick;
         next.untradeable = !entry.facts.isTradeable(); next.rule = rule; next.price = selected;
     }
     private Pending matching(String name)
@@ -117,7 +118,7 @@ final class LootAlerts
             Pending priorPet = pending.stream().filter(p -> p.pet && tick - p.tick <= 5).findFirst().orElse(null);
             if (priorPet != null)
             {
-                if (next != null && next != priorPet) { priorPet.rule = next.rule; priorPet.price = next.price; pending.remove(next); }
+                if (next != null && next != priorPet) { priorPet.rule = next.rule; priorPet.price = next.price; priorPet.dropSettled |= next.dropSettled; pending.remove(next); }
                 next = priorPet;
                 if (!name.isEmpty()) next.name = name;
             }
@@ -155,9 +156,14 @@ final class LootAlerts
         for (Iterator<Pending> it = pending.iterator(); it.hasNext();)
         {
             Pending next = it.next();
-            if (tick <= next.tick) continue;
             Sound sound = resolve(next);
-            if (sound == null || sound.bytes == null && sound.effect == null || sound.volume == 0 || config.alertVolume() == 0) { it.remove(); continue; }
+            boolean audible = sound != null && (sound.bytes != null || sound.effect != null) && sound.volume > 0 && config.alertVolume() > 0;
+            if (!next.dropSettled && tick <= next.tick)
+            {
+                if ((next.pet || next.collection) && audible) break;
+                continue;
+            }
+            if (!audible) { it.remove(); continue; }
             boolean urgent = next.pet || next.collection;
             if (!urgent && tick - lastSound < Math.ceil(clamp(config.soundCooldown(), 0, 60) / 0.6)) { it.remove(); continue; }
             if (playing.get()) { if (!urgent) it.remove(); continue; }

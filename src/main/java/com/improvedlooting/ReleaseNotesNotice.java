@@ -18,15 +18,10 @@ import net.runelite.client.events.ProfileChanged;
 @Singleton
 final class ReleaseNotesNotice
 {
-    static final String RELEASE = "2026-11-09-tier-sound-storage";
+    static final String RELEASE = "2026-11-10-drop-sound-timing";
     static final String SEEN_KEY = "releaseNotesShown";
     private static final String[] UPDATES = {
-        "Choose GE or High Alchemy in Loot > Drop tiers & sounds for values, tier colors, sounds and ordering.",
-        "Add Special drops sounds for untradeables, clue difficulties, collection logs, pets and individual items.",
-        "Choose custom files, existing tier sounds or silence, with pet and collection-log priority.",
-        "Keep custom tier sounds on this computer across restarts and profile changes.",
-        "Show selected sound filenames and report missing files without clearing your tiers.",
-        "Include custom tier sounds in settings exports for another computer."
+        "Play drop sounds sooner while keeping pet and collection-log sounds first."
     };
 
     @Inject private Client client;

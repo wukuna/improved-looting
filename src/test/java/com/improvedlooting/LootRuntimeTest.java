@@ -64,7 +64,7 @@ public class LootRuntimeTest
     }
     @Test public void soundCooldownIsSharedAcrossDifferentPiles()
     {
-        Fixture f=new Fixture("rule(true){sound=123;}");when(f.loot.config.lootSounds()).thenReturn(true);f.tick(100);f.loot.onItemSpawned(new ItemSpawned(f.tile,f.item(1,1,200)));f.loot.onItemSpawned(new ItemSpawned(f.tile,f.item(2,1,200)));f.tick(101);verify(f.loot.client,never()).playSoundEffect(anyInt(),anyInt());f.tick(102);verify(f.loot.client,times(1)).playSoundEffect(123,101);
+        Fixture f=new Fixture("rule(true){sound=123;}");when(f.loot.config.lootSounds()).thenReturn(true);f.tick(100);f.loot.onItemSpawned(new ItemSpawned(f.tile,f.item(1,1,200)));f.loot.onItemSpawned(new ItemSpawned(f.tile,f.item(2,1,200)));f.tick(101);verify(f.loot.client,times(1)).playSoundEffect(123,101);f.tick(102);verify(f.loot.client,times(1)).playSoundEffect(anyInt(),anyInt());
     }
     @Test public void densePilesStayBoundedAndProduceBrowserSnapshot()
     {
