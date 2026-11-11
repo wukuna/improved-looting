@@ -13,7 +13,7 @@ import net.runelite.client.plugins.*;
 import net.runelite.client.ui.*;
 import net.runelite.client.ui.overlay.OverlayManager;
 
-@PluginDescriptor(name="Improved Looting",internalName="improved-looting",description="Loot filters, nearby browser, rule inspector, labels, beams and alerts",tags={"loot","filters","icons","ground"})
+@PluginDescriptor(name="Improved Looting",internalName="improved-looting",description = "Style ground loot with cards, labels, GE or High Alchemy tiers, beams and custom sounds for valuable and special drops.",tags={"loot","filters","icons","ground"})
 public class ImprovedLootingPlugin extends Plugin
 {
     @Inject private ImprovedLootingConfig config;
