@@ -43,8 +43,8 @@ public class ReleaseNotesNoticeTest
         ArgumentCaptor<QueuedMessage> messages=ArgumentCaptor.forClass(QueuedMessage.class);
         verify(chat,times(1)).queue(messages.capture());
         String message=messages.getValue().getRuneLiteFormattedMessage();
-        assertTrue(message.contains("Play drop sounds sooner"));
-        assertEquals(4,message.split("<br>\\* ",-1).length-1);
+        assertTrue(message.contains("New coin-stack sidebar icon"));
+        assertEquals(2,message.split("<br>\\* ",-1).length-1);
         assertFalse(message.contains("Recent updates"));
         assertFalse(message.contains("<lt>br<gt>"));
         assertEquals(ReleaseNotesNotice.RELEASE,seen);

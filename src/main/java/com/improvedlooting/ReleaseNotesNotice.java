@@ -18,13 +18,11 @@ import net.runelite.client.events.ProfileChanged;
 @Singleton
 final class ReleaseNotesNotice
 {
-    static final String RELEASE = "2026-11-10-drop-sound-timing";
+    static final String RELEASE = "2026-11-13-clean-contours";
     static final String SEEN_KEY = "releaseNotesShown";
     private static final String[] UPDATES = {
-        "Play drop sounds sooner while keeping pet and collection-log sounds first.",
-        "Keep custom and silent tier sounds when drops arrive while sound settings load.",
-        "Recover menu icons after unfinished or cancelled image requests.",
-        "Hide or restore the sidebar icon from the regular plugin settings.",
+        "New coin-stack sidebar icon with clean contours and gold accents.",
+        "Now compatible with Loot Filter\u2019s icons if you choose to use them!",
     };
 
     @Inject private Client client;

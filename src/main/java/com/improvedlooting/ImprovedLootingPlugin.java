@@ -101,7 +101,6 @@ public class ImprovedLootingPlugin extends Plugin
     private void rebuildPanel() { panel=new ImprovedLootingPanel(icons,config,loot,migration,thread,preferences,profiles); navigation=NavigationButton.builder().tooltip("Improved Looting").icon(icon()).priority(7).panel(panel).build(); if (!config.hideSidePanel()) toolbar.addNavigation(navigation); }
     static BufferedImage icon()
     {
-        BufferedImage image=new BufferedImage(24,24,BufferedImage.TYPE_INT_ARGB); Graphics2D g=image.createGraphics();
-        try {g.setColor(new Color(231,181,70));g.fillRoundRect(3,8,18,13,4,4);g.setColor(new Color(101,65,28));g.fillRect(3,12,18,2);g.setColor(Color.WHITE);g.fillRect(11,11,3,5);} finally {g.dispose();} return image;
+        return net.runelite.client.util.ImageUtil.loadImageResource(ImprovedLootingPlugin.class, "sidebar-icon.png");
     }
 }
