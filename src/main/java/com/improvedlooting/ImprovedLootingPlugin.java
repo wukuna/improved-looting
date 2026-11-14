@@ -23,6 +23,7 @@ public class ImprovedLootingPlugin extends Plugin
     @Inject private SpecialLootEvents specialEvents;
     @Inject private GroundLootOverlay overlay;
     @Inject private LootCardsOverlay cards;
+    @Inject private LootCardsAnchorAdapter anchorAdapter;
     @Inject private LootPreferences preferences;
     @Inject private LootProfiles profiles;
     @Inject private LegacyImport migration;
@@ -52,7 +53,7 @@ public class ImprovedLootingPlugin extends Plugin
     {
         long token=++lifecycle;active=true;thread.invoke(()->{if(token==lifecycle){loot.clear();specialEvents.clear();overlay.clear();publisher.clear();}});
         icons.filters.reload(); icons.tiers.reload(); icons.tiers.specials.reload(); events.register(specialEvents); events.register(loot); events.register(publisher); overlays.add(overlay); overlays.add(cards);
-        events.register(releaseNotes);releaseNotes.start();
+        events.register(releaseNotes);releaseNotes.start();anchorAdapter.start();
         labelInput.start();mouseManager.registerMouseListener(labelInput);
         SwingUtilities.invokeLater(()->{
             if(!active || token!=lifecycle) return;
@@ -63,7 +64,7 @@ public class ImprovedLootingPlugin extends Plugin
     }
     @Override protected void shutDown()
     {
-        icons.tiers.stop(); icons.tiers.specials.stop(); events.unregister(specialEvents);
+        anchorAdapter.stop();icons.tiers.stop(); icons.tiers.specials.stop(); events.unregister(specialEvents);
         releaseNotes.stop();events.unregister(releaseNotes);
         labelInput.stop();mouseManager.unregisterMouseListener(labelInput);
         long token=++lifecycle;active=false; events.unregister(loot); events.unregister(publisher); overlays.remove(overlay); overlays.remove(cards); thread.invoke(()->{if(token==lifecycle){loot.clear();specialEvents.clear();overlay.clear(); publisher.clear();}});
